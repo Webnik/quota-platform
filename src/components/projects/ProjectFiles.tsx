@@ -1,19 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowDown, Eye, SortAsc, SortDesc, Search, UserPlus } from "lucide-react";
+import { ArrowDown, Eye, SortAsc, SortDesc, Search } from "lucide-react";
 import { useState, useMemo } from "react";
-import { FilePreview } from "../files/FilePreview";
+import { FilePreviewEnhanced } from "../files/FilePreviewEnhanced";
 import { FilePermissions } from "../files/FilePermissions";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileCategories } from "../files/FileCategories";
 import { FileTags } from "../files/FileTags";
+import { BulkFileOperations } from "../files/BulkFileOperations";
 
 interface ProjectFile {
   id: string;
@@ -37,6 +32,7 @@ export const ProjectFiles = ({ files, isLoading = false }: ProjectFilesProps) =>
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [fileType, setFileType] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
 
   const fileTypes = useMemo(() => {
     const types = new Set(files.map(file => file.type.split('/')[0]));
@@ -142,6 +138,12 @@ export const ProjectFiles = ({ files, isLoading = false }: ProjectFilesProps) =>
         />
       </div>
 
+      <BulkFileOperations
+        selectedFiles={selectedFiles}
+        onSelectionChange={setSelectedFiles}
+        files={filteredAndSortedFiles}
+      />
+
       <div className="space-y-2">
         {filteredAndSortedFiles.map((file) => (
           <div
@@ -163,13 +165,6 @@ export const ProjectFiles = ({ files, isLoading = false }: ProjectFilesProps) =>
               >
                 <Eye className="h-4 w-4" />
               </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => setPermissionsFile(file)}
-              >
-                <UserPlus className="h-4 w-4" />
-              </Button>
               <Button size="icon" variant="ghost" asChild>
                 <a href={file.url} download>
                   <ArrowDown className="h-4 w-4" />
@@ -180,8 +175,9 @@ export const ProjectFiles = ({ files, isLoading = false }: ProjectFilesProps) =>
         ))}
       </div>
 
-      <FilePreview
+      <FilePreviewEnhanced
         file={previewFile}
+        files={filteredAndSortedFiles}
         isOpen={!!previewFile}
         onClose={() => setPreviewFile(null)}
       />

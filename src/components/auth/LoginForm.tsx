@@ -20,13 +20,13 @@ const LoginForm = () => {
         if (user) {
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select('full_name, company_name')
+            .select('full_name, company_name, role')
             .eq('id', user.id)
             .single();
 
           if (profileError) throw profileError;
 
-          if (profile && (!profile.full_name || !profile.company_name)) {
+          if (profile && (!profile.full_name || !profile.company_name || !profile.role)) {
             setShowProfile(true);
           }
         }

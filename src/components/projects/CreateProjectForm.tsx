@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ProjectDatePicker } from "./ProjectDatePicker";
 import { ProjectFileUpload } from "./ProjectFileUpload";
 import { ContractorSelection } from "./ContractorSelection";
-import { projectFormSchema } from "./schemas/project-form-schema";
+import { projectFormSchema, ProjectFormValues } from "./schemas/project-form-schema";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -26,7 +26,7 @@ export function CreateProjectForm() {
   const [selectedContractors, setSelectedContractors] = useState<Array<{ tradeId: string, contractorId: string }>>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const form = useForm({
+  const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectFormSchema),
     defaultValues: {
       name: "",
@@ -35,7 +35,7 @@ export function CreateProjectForm() {
     },
   });
 
-  const onSubmit = async (values: any) => {
+  const onSubmit = async (values: ProjectFormValues) => {
     try {
       setIsSubmitting(true);
 
@@ -69,7 +69,7 @@ export function CreateProjectForm() {
               trade_id: tradeId,
               contractor_id: contractorId,
               status: "pending",
-              amount: 0, // Adding default amount as it's required
+              amount: 0, // Default amount as it's required
             }))
           );
 
@@ -133,13 +133,7 @@ export function CreateProjectForm() {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="dueDate"
-          render={({ field }) => (
-            <ProjectDatePicker form={form} />
-          )}
-        />
+        <ProjectDatePicker form={form} />
 
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Project Files</h3>

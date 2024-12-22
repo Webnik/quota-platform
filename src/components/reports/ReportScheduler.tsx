@@ -1,78 +1,67 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { QuoteResponse } from "@/types/quote";
 
-interface ReportSchedulerProps {
-  quotes: QuoteResponse[];
-}
-
-export const ReportScheduler = ({ quotes }: ReportSchedulerProps) => {
-  const [schedule, setSchedule] = useState("weekly");
-  const [emailRecipients, setEmailRecipients] = useState("");
+const ReportScheduler = () => {
   const [reportName, setReportName] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
+  const [schedule, setSchedule] = useState("");
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const saveSchedule = async () => {
-    if (!emailRecipients) {
-      toast.error('Please enter at least one email recipient');
+  const scheduleReport = async () => {
+    if (!reportName || !schedule || !email) {
+      toast.error("Please fill in all fields");
       return;
     }
 
-    setIsSaving(true);
+    setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const recipients = emailRecipients.split(',').map(email => email.trim());
-
       const { error } = await supabase
         .from('custom_reports')
         .insert({
           name: reportName,
-          user_id: user.id,
-          config: {
-            type: 'quote_analysis',
-            recipients,
-            format: 'pdf'
-          },
-          schedule
+          schedule,
+          config: { email, type: 'pdf' }
         });
 
       if (error) throw error;
 
-      toast.success('Report schedule saved successfully');
+      toast.success("Report scheduled successfully!");
       setReportName("");
-      setEmailRecipients("");
+      setSchedule("");
+      setEmail("");
     } catch (error) {
-      console.error('Error saving schedule:', error);
-      toast.error('Failed to save schedule');
+      console.error('Error scheduling report:', error);
+      toast.error("Failed to schedule report");
     } finally {
-      setIsSaving(false);
+      setLoading(false);
     }
   };
 
   return (
-    <Card className="p-6">
-      <h3 className="text-lg font-semibold mb-4">Schedule Reports</h3>
+    <Card className="p-6 space-y-4">
+      <h2 className="text-2xl font-bold">Schedule Report</h2>
       <div className="space-y-4">
-        <div>
-          <label className="text-sm font-medium">Report Name</label>
+        <div className="space-y-2">
+          <Label htmlFor="reportName">Report Name</Label>
           <Input
+            id="reportName"
             value={reportName}
             onChange={(e) => setReportName(e.target.value)}
             placeholder="Enter report name"
-            className="mt-1"
           />
         </div>
-        <div>
-          <label className="text-sm font-medium">Schedule</label>
+        
+        <div className="space-y-2">
+          <Label htmlFor="schedule">Schedule</Label>
           <Select value={schedule} onValueChange={setSchedule}>
-            <SelectTrigger className="mt-1">
+            <SelectTrigger>
               <SelectValue placeholder="Select schedule" />
             </SelectTrigger>
             <SelectContent>
@@ -82,23 +71,28 @@ export const ReportScheduler = ({ quotes }: ReportSchedulerProps) => {
             </SelectContent>
           </Select>
         </div>
-        <div>
-          <label className="text-sm font-medium">Email Recipients</label>
+
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
           <Input
-            value={emailRecipients}
-            onChange={(e) => setEmailRecipients(e.target.value)}
-            placeholder="Enter email addresses (comma-separated)"
-            className="mt-1"
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter email for delivery"
           />
         </div>
-        <Button 
-          onClick={saveSchedule} 
-          disabled={isSaving}
-          className="w-full"
-        >
-          {isSaving ? 'Saving...' : 'Save Schedule'}
-        </Button>
       </div>
+
+      <Button 
+        onClick={scheduleReport}
+        disabled={loading}
+        className="w-full"
+      >
+        {loading ? "Scheduling..." : "Schedule Report"}
+      </Button>
     </Card>
   );
 };
+
+export default ReportScheduler;

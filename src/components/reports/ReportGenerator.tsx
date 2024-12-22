@@ -1,86 +1,79 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { QuoteResponse } from "@/types/quote";
 
-interface ReportGeneratorProps {
-  quotes: QuoteResponse[];
-}
-
-export const ReportGenerator = ({ quotes }: ReportGeneratorProps) => {
-  const [reportType, setReportType] = useState<'pdf' | 'csv'>('pdf');
+const ReportGenerator = () => {
   const [reportName, setReportName] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const { data: quotes, isLoading: quotesLoading } = useQuery({
+    queryKey: ['quotes'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('quotes')
+        .select('*');
+      if (error) throw error;
+      return data as QuoteResponse[];
+    }
+  });
 
   const generateReport = async () => {
-    setIsGenerating(true);
+    if (!reportName) {
+      toast.error("Please enter a report name");
+      return;
+    }
+
+    setLoading(true);
     try {
-      const response = await supabase.functions.invoke('generate-report', {
-        body: {
-          quotes,
-          type: reportType,
+      const response = await fetch('/api/generate-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
           name: reportName,
-        },
+          quotes: quotes
+        })
       });
 
-      if (response.error) throw response.error;
+      if (!response.ok) throw new Error('Failed to generate report');
 
-      const { data } = response;
-      
-      // Download the generated report
-      const link = document.createElement('a');
-      link.href = data.url;
-      link.download = `${reportName || 'report'}.${reportType}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      toast.success('Report generated successfully');
+      const { url } = await response.json();
+      window.open(url, '_blank');
+      toast.success("Report generated successfully!");
     } catch (error) {
       console.error('Error generating report:', error);
-      toast.error('Failed to generate report');
+      toast.error("Failed to generate report");
     } finally {
-      setIsGenerating(false);
+      setLoading(false);
     }
   };
 
   return (
-    <Card className="p-6">
-      <h3 className="text-lg font-semibold mb-4">Generate Report</h3>
-      <div className="space-y-4">
-        <div>
-          <label className="text-sm font-medium">Report Name</label>
-          <Input
-            value={reportName}
-            onChange={(e) => setReportName(e.target.value)}
-            placeholder="Enter report name"
-            className="mt-1"
-          />
-        </div>
-        <div>
-          <label className="text-sm font-medium">Report Type</label>
-          <Select value={reportType} onValueChange={(value: 'pdf' | 'csv') => setReportType(value)}>
-            <SelectTrigger className="mt-1">
-              <SelectValue placeholder="Select report type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="pdf">PDF</SelectItem>
-              <SelectItem value="csv">CSV</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <Button 
-          onClick={generateReport} 
-          disabled={isGenerating}
-          className="w-full"
-        >
-          {isGenerating ? 'Generating...' : 'Generate Report'}
-        </Button>
+    <Card className="p-6 space-y-4">
+      <h2 className="text-2xl font-bold">Generate Report</h2>
+      <div className="space-y-2">
+        <Label htmlFor="reportName">Report Name</Label>
+        <Input
+          id="reportName"
+          value={reportName}
+          onChange={(e) => setReportName(e.target.value)}
+          placeholder="Enter report name"
+        />
       </div>
+      <Button 
+        onClick={generateReport}
+        disabled={loading || quotesLoading}
+        className="w-full"
+      >
+        {loading ? "Generating..." : "Generate PDF Report"}
+      </Button>
     </Card>
   );
 };
+
+export default ReportGenerator;

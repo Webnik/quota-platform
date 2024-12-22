@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import ProjectHeader from "@/components/projects/ProjectHeader";
+import { ProjectHeader } from "@/components/projects/ProjectHeader";
 import ProjectFiles from "@/components/projects/ProjectFiles";
 import { toast } from "sonner";
 

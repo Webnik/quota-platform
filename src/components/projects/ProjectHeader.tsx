@@ -35,6 +35,10 @@ export function ProjectHeader({
     try {
       const oldStatus = status;
       
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No authenticated user");
+      
       // Update project status
       const { error: updateError } = await supabase
         .from("projects")
@@ -50,6 +54,7 @@ export function ProjectHeader({
         description: `Project status changed from ${oldStatus} to ${newStatus}`,
         statusFrom: oldStatus,
         statusTo: newStatus,
+        createdBy: user.id,
       });
 
       // Notify stakeholders

@@ -14,7 +14,9 @@ const Login = () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
-          toast.error("Error checking authentication status");
+          toast.error("Authentication Error", {
+            description: "There was a problem checking your login status"
+          });
           console.error("Auth error:", error);
           return;
         }
@@ -30,8 +32,8 @@ const Login = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        toast.success("Successfully logged in", {
-          description: "Welcome back!"
+        toast.success("Login Successful", {
+          description: "Welcome back to Quota!"
         });
         navigate("/dashboard");
       }

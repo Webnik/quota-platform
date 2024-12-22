@@ -9,6 +9,7 @@ import { ContractorQualityMetrics } from "@/components/analytics/metrics/Contrac
 import { ReportExportManager } from "@/components/reports/ReportExportManager";
 import { AdvancedSearch } from "@/components/search/AdvancedSearch";
 import { NotificationPreferences } from "@/components/notifications/NotificationPreferences";
+import { TwoFactorAuth } from "@/components/auth/TwoFactorAuth";
 
 const Dashboard = () => {
   const { profile, isLoading: profileLoading } = useProfile();
@@ -80,7 +81,10 @@ const Dashboard = () => {
         <ContractorDashboard quotes={quotes} projects={projects} isLoading={isLoading} />
       )}
 
-      <NotificationPreferences />
+      <div className="grid gap-6 md:grid-cols-2">
+        <NotificationPreferences />
+        <TwoFactorAuth />
+      </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         <ContractorQualityMetrics />

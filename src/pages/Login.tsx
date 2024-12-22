@@ -66,10 +66,6 @@ const Login = () => {
             }}
             theme="dark"
             providers={[]}
-            onError={(error) => {
-              console.error("Auth error:", error);
-              toast.error(error.message);
-            }}
           />
         </div>
       </div>

@@ -7,6 +7,7 @@ import { QuoteAnalytics } from "../analytics/QuoteAnalytics";
 import { ContractorRatings } from "./contractor/ContractorRatings";
 import { useProfile } from "@/hooks/useProfile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
 
 interface ContractorDashboardProps {
   quotes?: QuoteResponse[];
@@ -14,8 +15,17 @@ interface ContractorDashboardProps {
   isLoading: boolean;
 }
 
-export const ContractorDashboard = ({ quotes = [], projects = [], isLoading }: ContractorDashboardProps) => {
+export const ContractorDashboard = ({ quotes: initialQuotes = [], projects = [], isLoading }: ContractorDashboardProps) => {
   const { profile } = useProfile();
+  const [quotes, setQuotes] = useState<QuoteResponse[]>(initialQuotes);
+
+  const handleQuoteUpdate = (updatedQuote: QuoteResponse) => {
+    setQuotes(prevQuotes => 
+      prevQuotes.map(quote => 
+        quote.id === updatedQuote.id ? updatedQuote : quote
+      )
+    );
+  };
 
   if (isLoading) {
     return (
@@ -39,7 +49,7 @@ export const ContractorDashboard = ({ quotes = [], projects = [], isLoading }: C
         </TabsList>
 
         <TabsContent value="quotes">
-          <QuotesList quotes={quotes} />
+          <QuotesList quotes={quotes} onQuoteUpdate={handleQuoteUpdate} />
         </TabsContent>
 
         <TabsContent value="analytics">

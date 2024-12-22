@@ -2,12 +2,62 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { QuoteResponse } from "@/types/quote";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface QuotesListProps {
   quotes: QuoteResponse[];
+  onQuoteUpdate?: (quote: QuoteResponse) => void;
 }
 
-export const QuotesList = ({ quotes }: QuotesListProps) => {
+export const QuotesList = ({ quotes, onQuoteUpdate }: QuotesListProps) => {
+  useEffect(() => {
+    const channel = supabase
+      .channel('quotes-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'quotes'
+        },
+        async (payload) => {
+          if (payload.eventType === 'UPDATE') {
+            const { data: quote, error } = await supabase
+              .from('quotes')
+              .select(`
+                *,
+                contractor:contractor_id (
+                  id,
+                  full_name,
+                  company_name
+                ),
+                project:project_id (*),
+                files (*)
+              `)
+              .eq('id', payload.new.id)
+              .single();
+
+            if (error) {
+              console.error('Error fetching updated quote:', error);
+              return;
+            }
+
+            if (quote) {
+              onQuoteUpdate?.(quote);
+              toast.info(`Quote ${payload.new.id} has been updated`);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [onQuoteUpdate]);
+
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">Recent Quotes</h2>

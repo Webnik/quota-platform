@@ -13,8 +13,11 @@ export const MessageThread = ({ threadId }: { threadId: string }) => {
   const { profile } = useProfile();
   const [newMessage, setNewMessage] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
-  const { data: messages = [], refetch } = useQuery({
+  const { refetch } = useQuery({
     queryKey: ["messages", threadId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -30,6 +33,7 @@ export const MessageThread = ({ threadId }: { threadId: string }) => {
         .order("created_at", { ascending: true });
 
       if (error) throw error;
+      setMessages(data);
       return data as Message[];
     },
   });
@@ -38,6 +42,15 @@ export const MessageThread = ({ threadId }: { threadId: string }) => {
     const channel = supabase
       .channel(`messages:${threadId}`)
       .on(
+        'presence',
+        { event: 'sync' },
+        () => {
+          const state = channel.presenceState();
+          const typingUsers = Object.values(state).flat().filter((p: any) => p.isTyping);
+          setIsTyping(typingUsers.length > 0);
+        }
+      )
+      .on(
         "postgres_changes",
         {
           event: "INSERT",
@@ -45,22 +58,40 @@ export const MessageThread = ({ threadId }: { threadId: string }) => {
           table: "messages",
           filter: `thread_id=eq.${threadId}`,
         },
-        () => {
-          refetch();
+        (payload) => {
+          const newMessage = payload.new as Message;
+          setMessages((prev) => [...prev, newMessage]);
         }
       )
-      .subscribe();
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({ user: profile?.id, isTyping: false });
+        }
+      });
 
     return () => {
       channel.unsubscribe();
     };
-  }, [threadId, refetch]);
+  }, [threadId, profile?.id]);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  const handleTyping = async () => {
+    const channel = supabase.channel(`messages:${threadId}`);
+    await channel.track({ user: profile?.id, isTyping: true });
+    
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(async () => {
+      await channel.track({ user: profile?.id, isTyping: false });
+    }, 1000);
+  };
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !profile) return;
@@ -75,6 +106,8 @@ export const MessageThread = ({ threadId }: { threadId: string }) => {
       if (error) throw error;
 
       setNewMessage("");
+      const channel = supabase.channel(`messages:${threadId}`);
+      await channel.track({ user: profile.id, isTyping: false });
     } catch (error) {
       console.error("Error sending message:", error);
       toast.error("Failed to send message");
@@ -107,12 +140,20 @@ export const MessageThread = ({ threadId }: { threadId: string }) => {
             </div>
           ))}
         </div>
+        {isTyping && (
+          <div className="text-sm text-muted-foreground mt-2">
+            Someone is typing...
+          </div>
+        )}
       </ScrollArea>
       <div className="p-4 border-t">
         <div className="flex gap-2">
           <Textarea
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            onChange={(e) => {
+              setNewMessage(e.target.value);
+              handleTyping();
+            }}
             placeholder="Type your message..."
             className="resize-none"
             rows={1}

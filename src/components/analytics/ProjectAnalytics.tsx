@@ -1,6 +1,6 @@
 import ProjectStatusChart from "./charts/ProjectStatusChart";
 import ProjectTimelineChart from "./charts/ProjectTimelineChart";
-import CostBreakdownChart from "./charts/CostBreakdownChart";
+import { CostBreakdownChart } from "./charts/CostBreakdownChart";
 
 const ProjectAnalytics = () => {
   return (

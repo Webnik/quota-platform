@@ -2,14 +2,34 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { QuoteResponse } from "@/types/quote";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
-export const CostBreakdownChart = () => {
+interface CostBreakdownChartProps {
+  quotes?: QuoteResponse[];
+}
+
+export const CostBreakdownChart = ({ quotes }: CostBreakdownChartProps = {}) => {
   const { data: costData } = useQuery({
     queryKey: ['cost-breakdown'],
     queryFn: async () => {
-      const { data: quotes, error } = await supabase
+      if (quotes) {
+        // Group and sum amounts by trade from provided quotes
+        const tradeAmounts = quotes.reduce((acc: Record<string, number>, quote) => {
+          const tradeName = quote.trade?.name || 'Uncategorized';
+          acc[tradeName] = (acc[tradeName] || 0) + Number(quote.amount);
+          return acc;
+        }, {});
+
+        return Object.entries(tradeAmounts).map(([name, value]) => ({
+          name,
+          value: Number(value.toFixed(2))
+        }));
+      }
+
+      // Fallback to fetching from database if no quotes provided
+      const { data: dbQuotes, error } = await supabase
         .from('quotes')
         .select(`
           amount,
@@ -22,7 +42,7 @@ export const CostBreakdownChart = () => {
       if (error) throw error;
 
       // Group and sum amounts by trade
-      const tradeAmounts = quotes.reduce((acc: Record<string, number>, quote) => {
+      const tradeAmounts = dbQuotes.reduce((acc: Record<string, number>, quote) => {
         const tradeName = quote.trade?.name || 'Uncategorized';
         acc[tradeName] = (acc[tradeName] || 0) + Number(quote.amount);
         return acc;

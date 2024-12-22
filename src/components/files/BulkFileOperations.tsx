@@ -32,11 +32,35 @@ export const BulkFileOperations = ({
     }
   };
 
+  const logFileAction = async (fileId: string, actionType: string, sharedWithId?: string) => {
+    try {
+      const { error } = await supabase
+        .from('file_sharing_audit_logs')
+        .insert({
+          file_id: fileId,
+          shared_by: (await supabase.auth.getUser()).data.user?.id,
+          shared_with: sharedWithId,
+          action_type: actionType,
+          ip_address: window.location.hostname,
+          user_agent: navigator.userAgent
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error logging file action:', error);
+    }
+  };
+
   const handleDelete = async () => {
     if (!selectedFiles.length) return;
 
     setIsDeleting(true);
     try {
+      // Log deletion for each file
+      await Promise.all(selectedFiles.map(fileId => 
+        logFileAction(fileId, 'DELETE')
+      ));
+
       const { error } = await supabase
         .from('files')
         .delete()
@@ -59,6 +83,11 @@ export const BulkFileOperations = ({
     if (!selectedFiles.length) return;
 
     const selectedFileData = files.filter(file => selectedFiles.includes(file.id));
+    
+    // Log download for each file
+    await Promise.all(selectedFileData.map(file => 
+      logFileAction(file.id, 'DOWNLOAD')
+    ));
     
     for (const file of selectedFileData) {
       const link = document.createElement('a');

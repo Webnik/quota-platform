@@ -299,6 +299,61 @@ export type Database = {
           },
         ]
       }
+      file_sharing_audit_logs: {
+        Row: {
+          action_timestamp: string | null
+          action_type: string
+          file_id: string | null
+          id: string
+          ip_address: string | null
+          shared_by: string | null
+          shared_with: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action_timestamp?: string | null
+          action_type: string
+          file_id?: string | null
+          id?: string
+          ip_address?: string | null
+          shared_by?: string | null
+          shared_with?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action_timestamp?: string | null
+          action_type?: string
+          file_id?: string | null
+          id?: string
+          ip_address?: string | null
+          shared_by?: string | null
+          shared_with?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_sharing_audit_logs_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "file_sharing_audit_logs_shared_by_fkey"
+            columns: ["shared_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "file_sharing_audit_logs_shared_with_fkey"
+            columns: ["shared_with"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       file_tag_relations: {
         Row: {
           file_id: string
@@ -409,10 +464,13 @@ export type Database = {
           category_id: string | null
           created_at: string | null
           id: string
+          is_archived: boolean | null
           last_accessed_at: string | null
           name: string
           project_id: string | null
           quote_id: string | null
+          retention_end_date: string | null
+          retention_period: unknown | null
           size: number
           type: string
           uploaded_by: string | null
@@ -423,10 +481,13 @@ export type Database = {
           category_id?: string | null
           created_at?: string | null
           id?: string
+          is_archived?: boolean | null
           last_accessed_at?: string | null
           name: string
           project_id?: string | null
           quote_id?: string | null
+          retention_end_date?: string | null
+          retention_period?: unknown | null
           size: number
           type: string
           uploaded_by?: string | null
@@ -437,10 +498,13 @@ export type Database = {
           category_id?: string | null
           created_at?: string | null
           id?: string
+          is_archived?: boolean | null
           last_accessed_at?: string | null
           name?: string
           project_id?: string | null
           quote_id?: string | null
+          retention_end_date?: string | null
+          retention_period?: unknown | null
           size?: number
           type?: string
           uploaded_by?: string | null

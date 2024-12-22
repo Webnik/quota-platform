@@ -1,13 +1,35 @@
+import { useQuery } from "@tanstack/react-query";
 import { Quote } from "@/types/quote";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface QuoteListProps {
-  quotes: Quote[];
+  projectId: string;
 }
 
-export const QuoteList = ({ quotes }: QuoteListProps) => {
+export const QuoteList = ({ projectId }: QuoteListProps) => {
+  const { data: quotes, isLoading } = useQuery({
+    queryKey: ['quotes', projectId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('quotes')
+        .select(`
+          *,
+          contractor:contractor_id (
+            full_name,
+            company_name
+          ),
+          files (*)
+        `)
+        .eq('project_id', projectId);
+
+      if (error) throw error;
+      return data as Quote[];
+    },
+  });
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
@@ -20,6 +42,14 @@ export const QuoteList = ({ quotes }: QuoteListProps) => {
         return "bg-primary/10 text-primary";
     }
   };
+
+  if (isLoading) {
+    return <div>Loading quotes...</div>;
+  }
+
+  if (!quotes || quotes.length === 0) {
+    return <div className="text-muted-foreground">No quotes submitted yet.</div>;
+  }
 
   return (
     <div className="space-y-4">

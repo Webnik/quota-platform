@@ -30,7 +30,9 @@ const Login = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        toast.success("Successfully logged in");
+        toast.success("Successfully logged in", {
+          description: "Welcome back!"
+        });
         navigate("/dashboard");
       }
     });

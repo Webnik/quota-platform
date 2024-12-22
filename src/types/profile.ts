@@ -5,3 +5,9 @@ export interface Profile {
   company_name?: string;
   avatar_url?: string | null;
 }
+
+export interface User {
+  id: string;
+  full_name: string;
+  email: string;
+}

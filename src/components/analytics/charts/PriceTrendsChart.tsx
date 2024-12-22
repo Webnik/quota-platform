@@ -87,7 +87,12 @@ export const PriceTrendsChart = ({ quotes }: PriceTrendsChartProps) => {
               }}
               activeDot={{
                 r: 6,
-                fill: (props: any) => getDotFill(props.payload.status)
+                stroke: "#fff",
+                strokeWidth: 1,
+                fill: (props: any) => {
+                  const status = props.payload.status;
+                  return getDotFill(status);
+                }
               }}
             />
           </LineChart>

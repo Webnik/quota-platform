@@ -2,76 +2,62 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectHeader } from "@/components/projects/ProjectHeader";
-import ProjectFiles from "@/components/projects/ProjectFiles";
+import { ProjectFiles } from "@/components/projects/ProjectFiles";
 import { ProjectTimelineView } from "@/components/projects/ProjectTimelineView";
-import { toast } from "sonner";
+import { QuoteComparison } from "@/components/quotes/QuoteComparison";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2 } from "lucide-react";
 
 const ProjectDetails = () => {
   const { id } = useParams<{ id: string }>();
 
-  const { data: project, isLoading: isLoadingProject } = useQuery({
+  const { data: project, isLoading } = useQuery({
     queryKey: ["project", id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select(`
+        .select(
+          `
           *,
-          files (*)
-        `)
+          consultant:profiles(*)
+        `
+        )
         .eq("id", id)
         .single();
 
-      if (error) {
-        toast.error("Failed to load project details");
-        throw error;
-      }
-
+      if (error) throw error;
       return data;
     },
   });
 
-  const { data: quotes, isLoading: isLoadingQuotes } = useQuery({
-    queryKey: ["project-quotes", id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("quotes")
-        .select("*")
-        .eq("project_id", id);
-
-      if (error) {
-        toast.error("Failed to load quotes");
-        throw error;
-      }
-
-      return data;
-    },
-  });
-
-  const isLoading = isLoadingProject || isLoadingQuotes;
-
-  const totalAmount = quotes?.reduce((sum, quote) => sum + Number(quote.amount), 0) || 0;
-
-  if (!id) return null;
+  if (isLoading || !project) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
-    <div className="container py-8 space-y-8">
-      <ProjectHeader
-        id={id}
-        isLoading={isLoading}
-        name={project?.name || ""}
-        status={project?.status || ""}
-        dueDate={project?.due_date ? new Date(project.due_date) : new Date()}
-        totalQuotes={quotes?.length || 0}
-        totalAmount={totalAmount}
-      />
-      
-      <div className="grid gap-6 md:grid-cols-2">
-        <ProjectFiles
-          isLoading={isLoading}
-          files={project?.files || []}
-        />
-        <ProjectTimelineView projectId={id} />
-      </div>
+    <div className="container mx-auto max-w-7xl space-y-8 p-8">
+      <ProjectHeader project={project} />
+
+      <Tabs defaultValue="quotes" className="w-full">
+        <TabsList>
+          <TabsTrigger value="quotes">Quotes</TabsTrigger>
+          <TabsTrigger value="files">Files</TabsTrigger>
+          <TabsTrigger value="timeline">Timeline</TabsTrigger>
+        </TabsList>
+        <TabsContent value="quotes" className="mt-6">
+          <QuoteComparison projectId={id!} />
+        </TabsContent>
+        <TabsContent value="files" className="mt-6">
+          <ProjectFiles projectId={id!} />
+        </TabsContent>
+        <TabsContent value="timeline" className="mt-6">
+          <ProjectTimelineView projectId={id!} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

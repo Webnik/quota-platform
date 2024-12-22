@@ -1,23 +1,15 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { QRCodeSetup } from "./QRCodeSetup";
+import { RecoveryCodes } from "./RecoveryCodes";
 
 export function TwoFactorAuth() {
   const [factorId, setFactorId] = useState<string | null>(null);
-  const [challengeId, setChallengeId] = useState<string | null>(null);
   const [qrCode, setQrCode] = useState<string | null>(null);
-  const [verifyCode, setVerifyCode] = useState("");
   const [isEnrolling, setIsEnrolling] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
   const [isEnabled, setIsEnabled] = useState(false);
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
   const [showRecoveryCodes, setShowRecoveryCodes] = useState(false);
@@ -31,7 +23,6 @@ export function TwoFactorAuth() {
       const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
       if (error) throw error;
       
-      // Check if TOTP is verified by looking at the authentication methods
       const hasTOTP = data.currentAuthenticationMethods.some(
         method => method.method === 'totp'
       );
@@ -54,18 +45,11 @@ export function TwoFactorAuth() {
       setFactorId(data.id);
       setQrCode(data.totp.qr_code);
       
-      // Get recovery codes during enrollment
-      const { data: factors } = await supabase.auth.mfa.listFactors();
-      const totpFactor = factors.totp?.[0];
-      
-      if (totpFactor) {
-        // Generate some basic recovery codes as a fallback
-        // In a production environment, you should implement a more secure method
-        const codes = Array.from({ length: 10 }, () => 
-          Math.random().toString(36).substring(2, 15).toUpperCase()
-        );
-        setRecoveryCodes(codes);
-      }
+      // Generate basic recovery codes
+      const codes = Array.from({ length: 10 }, () => 
+        Math.random().toString(36).substring(2, 15).toUpperCase()
+      );
+      setRecoveryCodes(codes);
     } catch (error) {
       console.error('Error enrolling in 2FA:', error);
       toast.error('Failed to set up 2FA');
@@ -74,38 +58,11 @@ export function TwoFactorAuth() {
     }
   };
 
-  const handleVerify = async () => {
-    try {
-      setIsVerifying(true);
-      const { data, error } = await supabase.auth.mfa.challenge({
-        factorId: factorId!
-      });
-      
-      if (error) throw error;
-
-      setChallengeId(data.id);
-
-      const { error: verifyError } = await supabase.auth.mfa.verify({
-        factorId: factorId!,
-        challengeId: data.id,
-        code: verifyCode,
-      });
-
-      if (verifyError) throw verifyError;
-
-      toast.success('Two-factor authentication enabled successfully');
-      setQrCode(null);
-      setFactorId(null);
-      setChallengeId(null);
-      setVerifyCode("");
-      setIsEnabled(true);
-      setShowRecoveryCodes(true);
-    } catch (error) {
-      console.error('Error verifying 2FA:', error);
-      toast.error('Failed to verify 2FA code');
-    } finally {
-      setIsVerifying(false);
-    }
+  const handleVerificationComplete = () => {
+    setQrCode(null);
+    setFactorId(null);
+    setIsEnabled(true);
+    setShowRecoveryCodes(true);
   };
 
   const handleDisable = async () => {
@@ -128,7 +85,6 @@ export function TwoFactorAuth() {
 
   const handleGenerateNewRecoveryCodes = async () => {
     try {
-      // Generate new recovery codes
       const codes = Array.from({ length: 10 }, () => 
         Math.random().toString(36).substring(2, 15).toUpperCase()
       );
@@ -170,62 +126,19 @@ export function TwoFactorAuth() {
         </div>
 
         {qrCode && (
-          <div className="space-y-4">
-            <div className="flex flex-col items-center space-y-4">
-              <p className="text-sm text-center max-w-md">
-                Scan this QR code with your authenticator app (like Google Authenticator or Authy)
-              </p>
-              <img src={qrCode} alt="2FA QR Code" className="w-48 h-48" />
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-sm">Enter the 6-digit code from your authenticator app:</p>
-              <InputOTP
-                maxLength={6}
-                value={verifyCode}
-                onChange={(value) => setVerifyCode(value)}
-                render={({ slots }) => (
-                  <InputOTPGroup className="gap-2">
-                    {slots.map((slot, index) => (
-                      <InputOTPSlot key={index} {...slot} index={index} />
-                    ))}
-                  </InputOTPGroup>
-                )}
-              />
-              <Button 
-                onClick={handleVerify} 
-                disabled={verifyCode.length !== 6 || isVerifying}
-                className="w-full mt-4"
-              >
-                {isVerifying ? 'Verifying...' : 'Verify and Enable'}
-              </Button>
-            </div>
-          </div>
+          <QRCodeSetup
+            factorId={factorId}
+            qrCode={qrCode}
+            onVerificationComplete={handleVerificationComplete}
+          />
         )}
-      </div>
 
-      <Dialog open={showRecoveryCodes} onOpenChange={setShowRecoveryCodes}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Recovery Codes</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Save these recovery codes in a secure place. You can use them to access your account if you lose your authenticator device.
-            </p>
-            <div className="bg-muted p-4 rounded-md space-y-2">
-              {recoveryCodes.map((code, index) => (
-                <div key={index} className="font-mono text-sm">
-                  {code}
-                </div>
-              ))}
-            </div>
-            <Button onClick={() => setShowRecoveryCodes(false)} className="w-full">
-              I've saved these codes
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        <RecoveryCodes
+          open={showRecoveryCodes}
+          onClose={() => setShowRecoveryCodes(false)}
+          recoveryCodes={recoveryCodes}
+        />
+      </div>
     </Card>
   );
 }

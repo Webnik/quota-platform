@@ -27,6 +27,7 @@ const Login = () => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
+        toast.success("Successfully logged in");
         navigate("/dashboard");
       }
     });
@@ -65,6 +66,10 @@ const Login = () => {
             }}
             theme="dark"
             providers={[]}
+            onError={(error) => {
+              console.error("Auth error:", error);
+              toast.error(error.message);
+            }}
           />
         </div>
       </div>

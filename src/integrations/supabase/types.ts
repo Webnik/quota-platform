@@ -222,6 +222,51 @@ export type Database = {
           },
         ]
       }
+      file_versions: {
+        Row: {
+          created_at: string | null
+          file_id: string
+          id: string
+          size: number
+          uploaded_by: string
+          url: string
+          version_number: number
+        }
+        Insert: {
+          created_at?: string | null
+          file_id: string
+          id?: string
+          size: number
+          uploaded_by: string
+          url: string
+          version_number: number
+        }
+        Update: {
+          created_at?: string | null
+          file_id?: string
+          id?: string
+          size?: number
+          uploaded_by?: string
+          url?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_versions_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "file_versions_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       files: {
         Row: {
           created_at: string | null
@@ -372,6 +417,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      mfa_recovery_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          id: string
+          used: boolean | null
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          id?: string
+          used?: boolean | null
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          id?: string
+          used?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
       }
       notification_preferences: {
         Row: {

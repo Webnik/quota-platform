@@ -9,9 +9,15 @@ interface FileUploaderProps {
   onFilesUploaded: (files: Array<{ name: string; url: string; size: number; type: string }>) => void;
   maxFiles?: number;
   maxSize?: number;
+  existingFileId?: string;
 }
 
-export const FileUploader = ({ onFilesUploaded, maxFiles = 5, maxSize = 5 * 1024 * 1024 }: FileUploaderProps) => {
+export const FileUploader = ({ 
+  onFilesUploaded, 
+  maxFiles = 5, 
+  maxSize = 5 * 1024 * 1024,
+  existingFileId 
+}: FileUploaderProps) => {
   const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; url: string; size: number; type: string }>>([]);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -40,6 +46,69 @@ export const FileUploader = ({ onFilesUploaded, maxFiles = 5, maxSize = 5 * 1024
           .from('project-files')
           .getPublicUrl(filePath);
 
+        if (existingFileId) {
+          // Get the current version number
+          const { data: versions } = await supabase
+            .from('file_versions')
+            .select('version_number')
+            .eq('file_id', existingFileId)
+            .order('version_number', { ascending: false })
+            .limit(1);
+
+          const nextVersion = versions && versions.length > 0 ? versions[0].version_number + 1 : 1;
+
+          // Create new version
+          const { error: versionError } = await supabase
+            .from('file_versions')
+            .insert({
+              file_id: existingFileId,
+              version_number: nextVersion,
+              url: publicUrl,
+              size: file.size,
+              uploaded_by: (await supabase.auth.getUser()).data.user?.id,
+            });
+
+          if (versionError) throw versionError;
+
+          // Update the main file record
+          const { error: updateError } = await supabase
+            .from('files')
+            .update({
+              url: publicUrl,
+              size: file.size,
+            })
+            .eq('id', existingFileId);
+
+          if (updateError) throw updateError;
+        } else {
+          const { error: fileError, data: fileData } = await supabase
+            .from('files')
+            .insert({
+              name: file.name,
+              url: publicUrl,
+              size: file.size,
+              type: file.type,
+              uploaded_by: (await supabase.auth.getUser()).data.user?.id,
+            })
+            .select()
+            .single();
+
+          if (fileError) throw fileError;
+
+          // Create initial version
+          const { error: versionError } = await supabase
+            .from('file_versions')
+            .insert({
+              file_id: fileData.id,
+              version_number: 1,
+              url: publicUrl,
+              size: file.size,
+              uploaded_by: (await supabase.auth.getUser()).data.user?.id,
+            });
+
+          if (versionError) throw versionError;
+        }
+
         newFiles.push({
           name: file.name,
           url: publicUrl,
@@ -61,7 +130,7 @@ export const FileUploader = ({ onFilesUploaded, maxFiles = 5, maxSize = 5 * 1024
     } finally {
       setIsUploading(false);
     }
-  }, [maxFiles, onFilesUploaded, uploadedFiles]);
+  }, [maxFiles, onFilesUploaded, uploadedFiles, existingFileId]);
 
   const removeFile = useCallback((fileToRemove: { name: string; url: string }) => {
     const updatedFiles = uploadedFiles.filter(

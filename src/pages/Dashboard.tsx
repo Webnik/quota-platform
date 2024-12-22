@@ -10,13 +10,14 @@ import { ReportExportManager } from "@/components/reports/ReportExportManager";
 import { AdvancedSearch } from "@/components/search/AdvancedSearch";
 import { NotificationPreferences } from "@/components/notifications/NotificationPreferences";
 import { TwoFactorAuth } from "@/components/auth/TwoFactorAuth";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const { profile, isLoading: profileLoading } = useProfile();
   const [quotes, setQuotes] = useState([]);
   const [projects, setProjects] = useState([]);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["dashboard-data"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -40,19 +41,27 @@ const Dashboard = () => {
         `)
         .order("created_at", { ascending: false });
 
-      const [quotesResponse, projectsResponse] = await Promise.all([
-        quotesPromise,
-        projectsPromise,
-      ]);
+      try {
+        const [quotesResponse, projectsResponse] = await Promise.all([
+          quotesPromise,
+          projectsPromise,
+        ]);
 
-      if (quotesResponse.error) throw quotesResponse.error;
-      if (projectsResponse.error) throw projectsResponse.error;
+        if (quotesResponse.error) throw quotesResponse.error;
+        if (projectsResponse.error) throw projectsResponse.error;
 
-      return {
-        quotes: quotesResponse.data,
-        projects: projectsResponse.data,
-      };
+        return {
+          quotes: quotesResponse.data,
+          projects: projectsResponse.data,
+        };
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+        toast.error("Failed to load dashboard data. Please try again.");
+        throw error;
+      }
     },
+    retry: 3,
+    retryDelay: 1000,
   });
 
   useEffect(() => {
@@ -61,6 +70,11 @@ const Dashboard = () => {
       setProjects(data.projects);
     }
   }, [data]);
+
+  if (error) {
+    toast.error("Error loading dashboard data");
+    console.error("Dashboard error:", error);
+  }
 
   if (profileLoading || !profile) {
     return <div>Loading...</div>;
@@ -88,7 +102,6 @@ const Dashboard = () => {
 
       <div className="grid gap-6 md:grid-cols-2">
         <ContractorQualityMetrics />
-        {/* Other metrics components */}
       </div>
     </div>
   );

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -45,9 +44,8 @@ export const CustomReportBuilder = () => {
         });
 
       if (error) throw error;
+
       toast.success("Report saved successfully");
-      
-      // Reset form
       setName("");
       setDescription("");
       setSchedule("");
@@ -64,59 +62,40 @@ export const CustomReportBuilder = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Custom Report Builder</h2>
-      
+      <div className="space-y-2">
+        <h2 className="text-2xl font-bold">Custom Report Builder</h2>
+        <p className="text-muted-foreground">Create and schedule custom reports</p>
+      </div>
+
       <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Report Name</label>
+        <div className="space-y-2">
+          <label htmlFor="name" className="text-sm font-medium">Report Name</label>
           <Input
+            id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Monthly Project Summary"
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Description</label>
+        <div className="space-y-2">
+          <label htmlFor="description" className="text-sm font-medium">Description</label>
           <Textarea
+            id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Detailed summary of project statuses and quotes"
+            placeholder="Detailed description of the report..."
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Schedule (Optional)</label>
-          <Select value={schedule} onValueChange={setSchedule}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select schedule" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="daily">Daily</SelectItem>
-              <SelectItem value="weekly">Weekly</SelectItem>
-              <SelectItem value="monthly">Monthly</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Metrics</label>
-          <Select
-            value={config.metrics[0]}
-            onValueChange={(value) => setConfig(prev => ({
-              ...prev,
-              metrics: [value]
-            }))}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select metrics" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="project_count">Project Count</SelectItem>
-              <SelectItem value="quote_average">Average Quote Amount</SelectItem>
-              <SelectItem value="completion_rate">Completion Rate</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="space-y-2">
+          <label htmlFor="schedule" className="text-sm font-medium">Schedule (cron expression)</label>
+          <Input
+            id="schedule"
+            value={schedule}
+            onChange={(e) => setSchedule(e.target.value)}
+            placeholder="0 0 * * *"
+          />
         </div>
 
         <Button onClick={handleSaveReport}>Save Report</Button>

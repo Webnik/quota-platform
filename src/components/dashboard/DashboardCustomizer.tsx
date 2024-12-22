@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,9 +13,9 @@ export const DashboardCustomizer = () => {
   }>({
     layout: {},
     widgets: [
-      { id: "projects_overview", name: "Projects Overview", enabled: true },
-      { id: "recent_quotes", name: "Recent Quotes", enabled: true },
-      { id: "analytics", name: "Analytics", enabled: true }
+      { id: "1", name: "Project Overview", enabled: true },
+      { id: "2", name: "Recent Activity", enabled: true },
+      { id: "3", name: "Quick Actions", enabled: true }
     ]
   });
 
@@ -51,6 +50,7 @@ export const DashboardCustomizer = () => {
       }
     } catch (error) {
       console.error('Error loading preferences:', error);
+      toast.error("Failed to load preferences");
     }
   };
 
@@ -70,7 +70,8 @@ export const DashboardCustomizer = () => {
         });
 
       if (error) throw error;
-      toast.success("Dashboard preferences saved");
+
+      toast.success("Preferences saved successfully");
     } catch (error) {
       console.error('Error saving preferences:', error);
       toast.error("Failed to save preferences");
@@ -90,13 +91,16 @@ export const DashboardCustomizer = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Customize Dashboard</h2>
-      
+      <div className="space-y-2">
+        <h2 className="text-2xl font-bold">Customize Dashboard</h2>
+        <p className="text-muted-foreground">Configure your dashboard layout and widgets</p>
+      </div>
+
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Widgets</h3>
         <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Widgets</h3>
           {preferences.widgets.map(widget => (
-            <div key={widget.id} className="flex items-center justify-between">
+            <div key={widget.id} className="flex items-center justify-between py-2">
               <span>{widget.name}</span>
               <Switch
                 checked={widget.enabled}

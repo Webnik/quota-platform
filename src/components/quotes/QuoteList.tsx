@@ -20,6 +20,7 @@ export const QuoteList = ({ projectId, isConsultant = false }: QuoteListProps) =
         .select(`
           *,
           contractor:contractor_id (
+            id,
             full_name,
             company_name
           ),

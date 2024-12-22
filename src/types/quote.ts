@@ -15,6 +15,7 @@ export interface Quote {
 
 export interface QuoteResponse extends Omit<Quote, 'project_id' | 'contractor_id'> {
   contractor: {
+    id: string;
     full_name: string;
     company_name: string;
   };

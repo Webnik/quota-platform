@@ -14,7 +14,15 @@ export interface Quote {
   updated_at: string;
 }
 
-export interface QuoteResponse extends Omit<Quote, 'project_id' | 'contractor_id' | 'trade_id'> {
+export interface QuoteResponse {
+  id: string;
+  trade_id: string;
+  amount: number;
+  status: string;
+  notes: string;
+  preferred: boolean;
+  created_at: string;
+  updated_at: string;
   contractor: {
     id: string;
     full_name: string;

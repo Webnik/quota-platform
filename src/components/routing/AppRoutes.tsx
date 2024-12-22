@@ -1,23 +1,19 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./ProtectedRoute";
-import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
+import Login from "@/pages/Login";
 import CreateProject from "@/pages/CreateProject";
 import ProjectDetails from "@/pages/ProjectDetails";
 import QuoteSubmission from "@/pages/QuoteSubmission";
 import Messages from "@/pages/Messages";
-import { PasswordReset } from "@/components/auth/PasswordReset";
-import { UpdatePassword } from "@/components/auth/UpdatePassword";
-import ProfileManagement from "@/components/profile/ProfileManagement";
+import NotFound from "@/pages/NotFound";
 
 export const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/reset-password" element={<PasswordReset />} />
-      <Route path="/update-password" element={<UpdatePassword />} />
       <Route
-        path="/dashboard"
+        path="/"
         element={
           <ProtectedRoute>
             <Dashboard />
@@ -25,10 +21,10 @@ export const AppRoutes = () => {
         }
       />
       <Route
-        path="/profile"
+        path="/dashboard"
         element={
           <ProtectedRoute>
-            <ProfileManagement />
+            <Dashboard />
           </ProtectedRoute>
         }
       />
@@ -49,7 +45,7 @@ export const AppRoutes = () => {
         }
       />
       <Route
-        path="/projects/:projectId/quotes/:tradeId"
+        path="/quotes/:id"
         element={
           <ProtectedRoute>
             <QuoteSubmission />
@@ -64,7 +60,7 @@ export const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };

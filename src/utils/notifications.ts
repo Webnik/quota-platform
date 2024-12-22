@@ -49,3 +49,20 @@ export async function getProjectStakeholders(projectId: string): Promise<Profile
 
   return profiles || [];
 }
+
+export async function notifyStakeholders(projectId: string, { title, message }: { title: string; message: string }) {
+  try {
+    const stakeholders = await getProjectStakeholders(projectId);
+    
+    for (const stakeholder of stakeholders) {
+      await createNotification({
+        userId: stakeholder.id,
+        title,
+        message,
+      });
+    }
+  } catch (error) {
+    console.error("Error notifying stakeholders:", error);
+    throw error;
+  }
+}

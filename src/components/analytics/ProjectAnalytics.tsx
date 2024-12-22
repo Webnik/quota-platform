@@ -32,10 +32,11 @@ export const ProjectAnalytics = ({ projects }: ProjectAnalyticsProps) => {
     count,
   }));
 
-  // Prepare timeline data
+  // Prepare timeline data with formatted dates
   const timelineData = projects.map(project => ({
     name: project.name,
     dueDate: new Date(project.due_date).getTime(),
+    formattedDate: new Date(project.due_date).toLocaleDateString(),
     status: project.status,
   })).sort((a, b) => a.dueDate - b.dueDate);
 
@@ -90,14 +91,18 @@ export const ProjectAnalytics = ({ projects }: ProjectAnalyticsProps) => {
                 textAnchor="end"
                 height={80}
               />
-              <YAxis />
-              <Tooltip />
+              <YAxis 
+                tickFormatter={(value) => new Date(value).toLocaleDateString()}
+              />
+              <Tooltip 
+                labelFormatter={(label) => `Project: ${label}`}
+                formatter={(value) => [new Date(value as number).toLocaleDateString(), "Due Date"]}
+              />
               <Line 
                 type="monotone" 
                 dataKey="dueDate" 
                 stroke="#8884d8"
                 name="Due Date"
-                tickFormatter={(value) => new Date(value).toLocaleDateString()}
               />
             </LineChart>
           </ResponsiveContainer>

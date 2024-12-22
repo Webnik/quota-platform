@@ -4,6 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
+type CleanupParams = {
+  leave_some: boolean;
+};
+
 export default function Populate() {
   const [isPopulating, setIsPopulating] = useState(false);
   const [isCleaning, setIsCleaning] = useState(false);
@@ -11,7 +15,7 @@ export default function Populate() {
   const handlePopulate = async () => {
     try {
       setIsPopulating(true);
-      const { error } = await supabase.rpc('populate_sample_data', {});
+      const { error } = await supabase.rpc('populate_sample_data');
       if (error) throw error;
       toast.success("Sample data created successfully!");
     } catch (error) {
@@ -27,7 +31,7 @@ export default function Populate() {
       setIsCleaning(true);
       const { error } = await supabase.rpc('cleanup_sample_data', {
         leave_some: leaveSome
-      });
+      } as CleanupParams);
       if (error) throw error;
       toast.success(leaveSome ? "Cleaned up most sample data!" : "Cleaned up all sample data!");
     } catch (error) {
@@ -55,11 +59,8 @@ export default function Populate() {
             </p>
             <ul className="list-disc list-inside text-sm text-muted-foreground ml-4 space-y-1">
               <li>2 Projects (Office Renovation & Restaurant Fitout)</li>
-              <li>3 Users (1 Consultant, 2 Contractors)</li>
               <li>2 Trades (Electrical & Plumbing)</li>
               <li>2 Quotes with different statuses</li>
-              <li>Project comments and timeline events</li>
-              <li>Sample files (dummy URLs)</li>
             </ul>
             <Button 
               onClick={handlePopulate} 

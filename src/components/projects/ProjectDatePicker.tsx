@@ -1,10 +1,10 @@
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { ProjectFormValues } from "./schemas/project-form-schema";
 
@@ -12,21 +12,21 @@ interface ProjectDatePickerProps {
   form: UseFormReturn<ProjectFormValues>;
 }
 
-export const ProjectDatePicker = ({ form }: ProjectDatePickerProps) => {
+export function ProjectDatePicker({ form }: ProjectDatePickerProps) {
   return (
     <FormField
       control={form.control}
       name="dueDate"
       render={({ field }) => (
-        <FormItem>
+        <FormItem className="flex flex-col">
           <FormLabel>Due Date</FormLabel>
           <Popover>
             <PopoverTrigger asChild>
               <FormControl>
                 <Button
-                  variant="outline"
+                  variant={"outline"}
                   className={cn(
-                    "w-full pl-3 text-left font-normal",
+                    "w-[240px] pl-3 text-left font-normal",
                     !field.value && "text-muted-foreground"
                   )}
                 >
@@ -51,9 +51,8 @@ export const ProjectDatePicker = ({ form }: ProjectDatePickerProps) => {
               />
             </PopoverContent>
           </Popover>
-          <FormMessage />
         </FormItem>
       )}
     />
   );
-};
+}

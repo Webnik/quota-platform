@@ -9,7 +9,10 @@ import { ProjectList } from "./consultant/ProjectList";
 import ProjectAnalytics from "../analytics/ProjectAnalytics";
 import { CustomReportBuilder } from "./CustomReportBuilder";
 import { DashboardCustomizer } from "./DashboardCustomizer";
+import { QuoteComparisonTool } from "../quotes/QuoteComparisonTool";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ConsultantDashboardProps {
   projects?: Project[];
@@ -22,6 +25,31 @@ export const ConsultantDashboard = ({ projects = [], isLoading }: ConsultantDash
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortField, setSortField] = useState<"name" | "due_date" | "status">("due_date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  // Fetch quotes for all consultant's projects
+  const { data: quotes = [] } = useQuery({
+    queryKey: ["consultant-quotes"],
+    queryFn: async () => {
+      const projectIds = projects.map(p => p.id);
+      const { data, error } = await supabase
+        .from("quotes")
+        .select(`
+          *,
+          contractor:contractor_id (
+            id,
+            full_name,
+            company_name
+          ),
+          trade:trade_id (*),
+          files (*)
+        `)
+        .in("project_id", projectIds);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: projects.length > 0,
+  });
 
   const filteredAndSortedProjects = useMemo(() => {
     let filtered = [...(projects || [])];
@@ -85,6 +113,7 @@ export const ConsultantDashboard = ({ projects = [], isLoading }: ConsultantDash
       <Tabs defaultValue="projects" className="w-full">
         <TabsList>
           <TabsTrigger value="projects">Projects</TabsTrigger>
+          <TabsTrigger value="quotes">Quote Comparison</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="reports">Custom Reports</TabsTrigger>
           <TabsTrigger value="customize">Customize</TabsTrigger>
@@ -103,6 +132,10 @@ export const ConsultantDashboard = ({ projects = [], isLoading }: ConsultantDash
           />
 
           <ProjectList projects={filteredAndSortedProjects} />
+        </TabsContent>
+
+        <TabsContent value="quotes">
+          <QuoteComparisonTool quotes={quotes} />
         </TabsContent>
 
         <TabsContent value="analytics">

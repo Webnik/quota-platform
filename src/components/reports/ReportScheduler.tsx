@@ -6,17 +6,23 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { QuoteResponse } from "@/types/quote";
+import { useAuth } from "@/hooks/useAuth";
 
 const ReportScheduler = () => {
   const [reportName, setReportName] = useState("");
   const [schedule, setSchedule] = useState("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
 
   const scheduleReport = async () => {
     if (!reportName || !schedule || !email) {
       toast.error("Please fill in all fields");
+      return;
+    }
+
+    if (!user?.id) {
+      toast.error("You must be logged in to schedule reports");
       return;
     }
 
@@ -27,6 +33,7 @@ const ReportScheduler = () => {
         .insert({
           name: reportName,
           schedule,
+          user_id: user.id,
           config: { email, type: 'pdf' }
         });
 

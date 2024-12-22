@@ -17,7 +17,16 @@ const ReportGenerator = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('quotes')
-        .select('*');
+        .select(`
+          *,
+          contractor:contractor_id (
+            id,
+            full_name,
+            company_name
+          ),
+          project:project_id (*),
+          files (*)
+        `);
       if (error) throw error;
       return data as QuoteResponse[];
     }

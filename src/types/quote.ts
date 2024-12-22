@@ -1,3 +1,4 @@
+import { Profile } from "./profile";
 import { Project } from "./project";
 
 export interface Quote {
@@ -7,21 +8,31 @@ export interface Quote {
   trade_id: string;
   amount: number;
   status: string;
-  notes?: string;
+  notes: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QuoteResponse {
+  id: string;
+  amount: number;
+  status: string;
+  notes: string;
+  contractor_id: string;
+  project_id: string;
+  trade_id: string;
   created_at: string;
   updated_at: string;
   contractor: {
-    full_name: string | null;
-    company_name: string | null;
+    full_name: string;
+    company_name: string;
   };
-  files?: {
+  project: Project;
+  files: {
     id: string;
     name: string;
     url: string;
+    size: number;
+    type: string;
   }[];
 }
-
-// Add a type for the data structure we receive from Supabase
-export type QuoteResponse = Pick<Quote, 'id' | 'amount' | 'status'> & {
-  project: Pick<Project, 'id' | 'name' | 'description' | 'status' | 'due_date'>;
-};

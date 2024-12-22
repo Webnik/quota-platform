@@ -1,136 +1,75 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
-import { Profile } from "@/types/profile";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ConsultantDashboard } from "@/components/dashboard/ConsultantDashboard";
 import { ContractorDashboard } from "@/components/dashboard/ContractorDashboard";
-import { Quote, QuoteResponse } from "@/types/quote";
+import { supabase } from "@/integrations/supabase/client";
+import { Profile } from "@/types/profile";
+import { QuoteResponse } from "@/types/quote";
+import { Project } from "@/types/project";
 
 const Dashboard = () => {
-  const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [quotes, setQuotes] = useState<QuoteResponse[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [quotesLoading, setQuotesLoading] = useState(true);
+  const [projectsLoading, setProjectsLoading] = useState(true);
 
-  // Fetch profile data
   useEffect(() => {
-    const getProfile = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-          navigate("/login");
-          return;
-        }
-
-        const { data: profileData, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
+    const fetchProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
           .single();
-
-        if (error) throw error;
         setProfile(profileData);
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-        toast.error("Error loading profile");
       }
     };
 
-    getProfile();
-  }, [navigate]);
+    const fetchQuotes = async () => {
+      setQuotesLoading(true);
+      const { data: quotesData } = await supabase
+        .from('quotes')
+        .select('*');
+      setQuotes(quotesData);
+      setQuotesLoading(false);
+    };
 
-  // Fetch projects based on role
-  const { data: projects, isLoading: projectsLoading } = useQuery({
-    queryKey: ['projects', profile?.role],
-    queryFn: async () => {
-      if (!profile) return [];
-      
-      let query = supabase
-        .from("projects")
-        .select(`
-          id,
-          name,
-          description,
-          status,
-          due_date
-        `);
+    const fetchProjects = async () => {
+      setProjectsLoading(true);
+      const { data: projectsData } = await supabase
+        .from('projects')
+        .select('*');
+      setProjects(projectsData);
+      setProjectsLoading(false);
+    };
 
-      if (profile.role === 'consultant') {
-        query = query.eq('consultant_id', profile.id);
-      } else if (profile.role === 'contractor') {
-        // First get the project IDs where the contractor has quotes
-        const { data: projectIds } = await supabase
-          .from('quotes')
-          .select('project_id')
-          .eq('contractor_id', profile.id);
-        
-        if (projectIds && projectIds.length > 0) {
-          query = query.in('id', projectIds.map(p => p.project_id));
-        } else {
-          return []; // Return empty array if no projects found
-        }
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!profile
-  });
-
-  // Fetch quotes for contractors
-  const { data: quotes, isLoading: quotesLoading } = useQuery({
-    queryKey: ['quotes', profile?.id],
-    queryFn: async () => {
-      if (!profile || profile.role !== 'contractor') return [];
-      
-      const { data, error } = await supabase
-        .from("quotes")
-        .select(`
-          id,
-          amount,
-          status,
-          project:projects (
-            id,
-            name,
-            description,
-            status,
-            due_date
-          )
-        `)
-        .eq('contractor_id', profile.id);
-
-      if (error) throw error;
-      return data as QuoteResponse[];
-    },
-    enabled: !!profile && profile.role === 'contractor'
-  });
-
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      navigate("/login");
-    } catch (error) {
-      console.error("Error signing out:", error);
-      toast.error("Error signing out");
-    }
-  };
+    fetchProfile();
+    fetchQuotes();
+    fetchProjects();
+    setIsLoading(false);
+  }, []);
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
+    <div className="container py-8 space-y-8">
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Welcome, {profile?.full_name}</h1>
-          <p className="text-muted capitalize">{profile?.role}</p>
-        </div>
-        <Button variant="outline" onClick={handleSignOut}>
-          Sign Out
-        </Button>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        {profile?.role === 'consultant' && (
+          <Link to="/projects/new">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" /> New Project
+            </Button>
+          </Link>
+        )}
       </div>
-      
-      {profile?.role === 'consultant' ? (
+
+      {isLoading ? (
+        <Skeleton className="h-8 w-[200px]" />
+      ) : profile?.role === 'consultant' ? (
         <ConsultantDashboard 
           projects={projects} 
           isLoading={projectsLoading} 
@@ -141,12 +80,7 @@ const Dashboard = () => {
           projects={projects}
           isLoading={quotesLoading || projectsLoading} 
         />
-      ) : (
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-destructive">Invalid Role</h2>
-          <p className="text-muted">Please contact an administrator.</p>
-        </div>
-      )}
+      ) : null}
     </div>
   );
 };

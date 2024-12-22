@@ -2,6 +2,7 @@ import ProjectStatusChart from "./charts/ProjectStatusChart";
 import ProjectTimelineChart from "./charts/ProjectTimelineChart";
 import { CostBreakdownChart } from "./charts/CostBreakdownChart";
 import { ProjectDelayChart } from "./charts/ProjectDelayChart";
+import { ResourceAllocationChart } from "./charts/ResourceAllocationChart";
 
 const ProjectAnalytics = () => {
   return (
@@ -10,6 +11,7 @@ const ProjectAnalytics = () => {
         <ProjectStatusChart />
         <CostBreakdownChart />
         <ProjectDelayChart />
+        <ResourceAllocationChart />
       </div>
       <ProjectTimelineChart />
     </div>

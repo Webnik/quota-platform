@@ -48,6 +48,9 @@ const LoginForm = () => {
         }}
         theme="dark"
         providers={[]}
+        view="sign_in"
+        showLinks={true}
+        redirectTo={`${window.location.origin}/dashboard`}
       />
     </div>
   );

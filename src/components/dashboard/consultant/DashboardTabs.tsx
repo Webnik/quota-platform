@@ -3,7 +3,8 @@ import { ProjectFilters } from "./ProjectFilters";
 import { ProjectList } from "./ProjectList";
 import { QuoteComparisonTool } from "../../quotes/QuoteComparisonTool";
 import ProjectAnalytics from "../../analytics/ProjectAnalytics";
-import { CustomReportBuilder } from "../CustomReportBuilder";
+import { CustomReportBuilder } from "../../reports/CustomReportBuilder";
+import { ReportList } from "../../reports/ReportList";
 import { DashboardCustomizer } from "../DashboardCustomizer";
 import { Project } from "@/types/project";
 import { QuoteResponse } from "@/types/quote";
@@ -56,7 +57,6 @@ export const DashboardTabs = ({
           sortDirection={sortDirection}
           onSortDirectionChange={onSortDirectionChange}
         />
-
         <ProjectList projects={filteredProjects} />
       </TabsContent>
 
@@ -68,8 +68,9 @@ export const DashboardTabs = ({
         <ProjectAnalytics />
       </TabsContent>
 
-      <TabsContent value="reports">
+      <TabsContent value="reports" className="space-y-6">
         <CustomReportBuilder />
+        <ReportList />
       </TabsContent>
 
       <TabsContent value="customize">

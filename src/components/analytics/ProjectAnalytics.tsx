@@ -1,18 +1,17 @@
-import { Project } from "@/types/project";
-import { ProjectSuccessMetrics } from "./metrics/ProjectSuccessMetrics";
-import { ProjectStatusChart } from "./charts/ProjectStatusChart";
-import { ProjectTimelineChart } from "./charts/ProjectTimelineChart";
+import ProjectSuccessMetrics from "./metrics/ProjectSuccessMetrics";
+import ProjectStatusChart from "./charts/ProjectStatusChart";
+import ProjectTimelineChart from "./charts/ProjectTimelineChart";
 
-interface ProjectAnalyticsProps {
-  projects: Project[];
-}
-
-export const ProjectAnalytics = ({ projects }: ProjectAnalyticsProps) => {
+const ProjectAnalytics = () => {
   return (
-    <div className="space-y-6">
-      <ProjectSuccessMetrics projects={projects} />
-      <ProjectStatusChart projects={projects} />
-      <ProjectTimelineChart projects={projects} />
+    <div className="space-y-8">
+      <ProjectSuccessMetrics />
+      <div className="grid gap-4 md:grid-cols-2">
+        <ProjectStatusChart />
+        <ProjectTimelineChart />
+      </div>
     </div>
   );
 };
+
+export default ProjectAnalytics;

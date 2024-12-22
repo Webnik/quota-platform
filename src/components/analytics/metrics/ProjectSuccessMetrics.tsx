@@ -1,41 +1,70 @@
-import { Card } from "@/components/ui/card";
-import { Project } from "@/types/project";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
-interface ProjectSuccessMetricsProps {
-  projects: Project[];
-}
+const ProjectSuccessMetrics = () => {
+  const { data: metrics } = useQuery({
+    queryKey: ['project-metrics'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('status, due_date');
+      
+      if (error) throw error;
 
-export const ProjectSuccessMetrics = ({ projects }: ProjectSuccessMetricsProps) => {
-  const totalProjects = projects.length;
-  const completedProjects = projects.filter(p => p.status === 'closed').length;
-  const successRate = totalProjects > 0 ? (completedProjects / totalProjects) * 100 : 0;
-  const delayedProjects = projects.filter(project => {
-    const dueDate = new Date(project.due_date);
-    return dueDate < new Date() && project.status !== 'closed';
-  }).length;
-  const delayRate = totalProjects > 0 ? (delayedProjects / totalProjects) * 100 : 0;
+      const total = data.length;
+      const completed = data.filter(p => p.status === 'closed').length;
+      const delayed = data.filter(p => {
+        return new Date(p.due_date) < new Date() && p.status !== 'closed';
+      }).length;
+
+      return {
+        successRate: total ? (completed / total * 100).toFixed(1) : 0,
+        delayRate: total ? (delayed / total * 100).toFixed(1) : 0,
+        totalProjects: total
+      };
+    }
+  });
 
   return (
-    <Card className="p-6">
-      <h3 className="text-lg font-semibold mb-4">Project Success Metrics</h3>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div>
-          <p className="text-sm text-muted-foreground">Total Projects</p>
-          <p className="text-2xl font-bold">{totalProjects}</p>
-        </div>
-        <div>
-          <p className="text-sm text-muted-foreground">Completed Projects</p>
-          <p className="text-2xl font-bold">{completedProjects}</p>
-        </div>
-        <div>
-          <p className="text-sm text-muted-foreground">Success Rate</p>
-          <p className="text-2xl font-bold">{successRate.toFixed(1)}%</p>
-        </div>
-        <div>
-          <p className="text-sm text-muted-foreground">Delay Rate</p>
-          <p className="text-2xl font-bold">{delayRate.toFixed(1)}%</p>
-        </div>
-      </div>
-    </Card>
+    <div className="grid gap-4 md:grid-cols-3">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{metrics?.successRate}%</div>
+          <p className="text-xs text-muted-foreground">
+            Projects completed successfully
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Delay Rate</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{metrics?.delayRate}%</div>
+          <p className="text-xs text-muted-foreground">
+            Projects with delays
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{metrics?.totalProjects}</div>
+          <p className="text-xs text-muted-foreground">
+            All-time projects
+          </p>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
+
+export default ProjectSuccessMetrics;

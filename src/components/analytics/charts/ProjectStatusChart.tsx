@@ -1,37 +1,49 @@
-import { Card } from "@/components/ui/card";
-import { Project } from "@/types/project";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-interface ProjectStatusChartProps {
-  projects: Project[];
-}
+const ProjectStatusChart = () => {
+  const { data: statusData } = useQuery({
+    queryKey: ['project-status'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('status');
+      
+      if (error) throw error;
 
-export const ProjectStatusChart = ({ projects }: ProjectStatusChartProps) => {
-  const statusData = projects.reduce((acc, project) => {
-    const status = project.status || 'unknown';
-    acc[status] = (acc[status] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+      const statusCounts = data.reduce((acc: Record<string, number>, project) => {
+        acc[project.status] = (acc[project.status] || 0) + 1;
+        return acc;
+      }, {});
 
-  const chartData = Object.entries(statusData).map(([status, count]) => ({
-    status,
-    count,
-  }));
+      return Object.entries(statusCounts).map(([status, count]) => ({
+        status: status.charAt(0).toUpperCase() + status.slice(1),
+        count
+      }));
+    }
+  });
 
   return (
-    <Card className="p-6">
-      <h3 className="text-lg font-semibold mb-4">Project Status Distribution</h3>
-      <div className="h-[300px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="status" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="count" fill="#8884d8" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+    <Card className="col-span-2">
+      <CardHeader>
+        <CardTitle>Project Status Distribution</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={statusData}>
+              <XAxis dataKey="status" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="count" fill="#8884d8" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
     </Card>
   );
 };
+
+export default ProjectStatusChart;

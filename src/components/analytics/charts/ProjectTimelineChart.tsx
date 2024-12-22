@@ -1,48 +1,62 @@
-import { Card } from "@/components/ui/card";
-import { Project } from "@/types/project";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { format } from 'date-fns';
 
-interface ProjectTimelineChartProps {
-  projects: Project[];
-}
+const ProjectTimelineChart = () => {
+  const { data: timelineData } = useQuery({
+    queryKey: ['project-timeline'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('project_timeline')
+        .select('created_at, event_type')
+        .order('created_at');
+      
+      if (error) throw error;
 
-export const ProjectTimelineChart = ({ projects }: ProjectTimelineChartProps) => {
-  const timelineData = projects.map(project => ({
-    name: project.name,
-    dueDate: new Date(project.due_date).getTime(),
-    formattedDate: new Date(project.due_date).toLocaleDateString(),
-    status: project.status,
-  })).sort((a, b) => a.dueDate - b.dueDate);
+      const events = data.reduce((acc: Record<string, number>, event) => {
+        const date = format(new Date(event.created_at), 'yyyy-MM-dd');
+        acc[date] = (acc[date] || 0) + 1;
+        return acc;
+      }, {});
+
+      return Object.entries(events).map(([date, count]) => ({
+        date,
+        events: count
+      }));
+    }
+  });
 
   return (
-    <Card className="p-6">
-      <h3 className="text-lg font-semibold mb-4">Project Timeline Analysis</h3>
-      <div className="h-[300px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={timelineData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis 
-              dataKey="name" 
-              angle={-45}
-              textAnchor="end"
-              height={80}
-            />
-            <YAxis 
-              tickFormatter={(value) => new Date(value).toLocaleDateString()}
-            />
-            <Tooltip 
-              labelFormatter={(label) => `Project: ${label}`}
-              formatter={(value) => [new Date(value as number).toLocaleDateString(), "Due Date"]}
-            />
-            <Line 
-              type="monotone" 
-              dataKey="dueDate" 
-              stroke="#8884d8"
-              name="Due Date"
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+    <Card className="col-span-3">
+      <CardHeader>
+        <CardTitle>Project Activity Timeline</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={timelineData}>
+              <XAxis 
+                dataKey="date"
+                tickFormatter={(value) => format(new Date(value), 'MMM d')}
+              />
+              <YAxis />
+              <Tooltip
+                labelFormatter={(value) => format(new Date(value), 'MMM d, yyyy')}
+              />
+              <Line
+                type="monotone"
+                dataKey="events"
+                stroke="#8884d8"
+                name="Events"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
     </Card>
   );
 };
+
+export default ProjectTimelineChart;

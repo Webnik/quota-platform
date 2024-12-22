@@ -21,6 +21,24 @@ const Login = () => {
           return;
         }
         if (session) {
+          // Get user profile to determine role
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (profileError) {
+            toast.error("Profile Error", {
+              description: "Could not fetch user profile"
+            });
+            console.error("Profile error:", profileError);
+            return;
+          }
+
+          toast.success("Login Successful", {
+            description: `Welcome back to Quota!`
+          });
           navigate("/dashboard");
         }
       } finally {
@@ -30,8 +48,23 @@ const Login = () => {
 
     checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session) {
+        // Get user profile to determine role
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (profileError) {
+          toast.error("Profile Error", {
+            description: "Could not fetch user profile"
+          });
+          console.error("Profile error:", profileError);
+          return;
+        }
+
         toast.success("Login Successful", {
           description: "Welcome back to Quota!"
         });

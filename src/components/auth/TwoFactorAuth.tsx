@@ -136,7 +136,7 @@ export function TwoFactorAuth() {
         <RecoveryCodes
           open={showRecoveryCodes}
           onClose={() => setShowRecoveryCodes(false)}
-          recoveryCodes={recoveryCodes}
+          codes={recoveryCodes}
         />
       </div>
     </Card>

@@ -6,9 +6,10 @@ import ProfileForm from "./ProfileForm";
 import LoginForm from "./LoginForm";
 import LoginLoader from "./LoginLoader";
 
-const LoginWrapper = () => {
+const LoginWrapper = ({ children }: { children: React.ReactNode }) => {
   const [showProfile, setShowProfile] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showMFA, setShowMFA] = useState(false);
 
   useEffect(() => {
     const checkProfile = async () => {
@@ -68,7 +69,7 @@ const LoginWrapper = () => {
         transition={{ duration: 0.3 }}
         className="w-full max-w-md space-y-8"
       >
-        <LoginForm />
+        {children}
       </motion.div>
     </AnimatePresence>
   );

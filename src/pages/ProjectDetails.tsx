@@ -53,6 +53,7 @@ const ProjectDetails = () => {
   return (
     <div className="container py-8 space-y-8">
       <ProjectHeader
+        id={id as string}
         isLoading={isLoading}
         name={project?.name || ""}
         status={project?.status || ""}

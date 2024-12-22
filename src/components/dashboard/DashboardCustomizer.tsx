@@ -4,14 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-
-interface Widget {
-  id: string;
-  name: string;
-  enabled: boolean;
-}
+import { Widget } from "@/types/dashboard";
 
 export const DashboardCustomizer = () => {
+  const [userId, setUserId] = useState<string | null>(null);
   const [preferences, setPreferences] = useState<{
     layout: Record<string, any>;
     widgets: Widget[];
@@ -25,21 +21,32 @@ export const DashboardCustomizer = () => {
   });
 
   useEffect(() => {
-    loadPreferences();
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+        loadPreferences(user.id);
+      }
+    };
+    getUser();
   }, []);
 
-  const loadPreferences = async () => {
+  const loadPreferences = async (uid: string) => {
     try {
       const { data, error } = await supabase
         .from('dashboard_preferences')
         .select('*')
+        .eq('user_id', uid)
         .single();
 
       if (error) throw error;
       if (data) {
+        const parsedLayout = typeof data.layout === 'string' ? JSON.parse(data.layout) : data.layout;
+        const parsedWidgets = typeof data.widgets === 'string' ? JSON.parse(data.widgets) : data.widgets;
+        
         setPreferences({
-          layout: data.layout,
-          widgets: data.widgets
+          layout: parsedLayout,
+          widgets: parsedWidgets
         });
       }
     } catch (error) {
@@ -48,12 +55,18 @@ export const DashboardCustomizer = () => {
   };
 
   const savePreferences = async () => {
+    if (!userId) {
+      toast.error("Please log in to save preferences");
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('dashboard_preferences')
         .upsert({
-          layout: preferences.layout,
-          widgets: preferences.widgets
+          user_id: userId,
+          layout: JSON.stringify(preferences.layout),
+          widgets: JSON.stringify(preferences.widgets)
         });
 
       if (error) throw error;

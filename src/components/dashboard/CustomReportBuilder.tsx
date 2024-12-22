@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,8 +15,24 @@ export const CustomReportBuilder = () => {
     filters: {},
     groupBy: null
   });
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+      }
+    };
+    getUser();
+  }, []);
 
   const handleSaveReport = async () => {
+    if (!userId) {
+      toast.error("Please log in to save reports");
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('custom_reports')
@@ -24,7 +40,8 @@ export const CustomReportBuilder = () => {
           name,
           description,
           schedule,
-          config
+          config,
+          user_id: userId
         });
 
       if (error) throw error;

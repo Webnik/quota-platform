@@ -4,15 +4,8 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
 import { ConsultantStats } from "./consultant/ConsultantStats";
-import { ProjectFilters } from "./consultant/ProjectFilters";
-import { ProjectList } from "./consultant/ProjectList";
-import ProjectAnalytics from "../analytics/ProjectAnalytics";
-import { CustomReportBuilder } from "./CustomReportBuilder";
-import { DashboardCustomizer } from "./DashboardCustomizer";
-import { QuoteComparisonTool } from "../quotes/QuoteComparisonTool";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { DashboardTabs } from "./consultant/DashboardTabs";
+import { useConsultantQuotes } from "@/hooks/useConsultantQuotes";
 
 interface ConsultantDashboardProps {
   projects?: Project[];
@@ -26,31 +19,7 @@ export const ConsultantDashboard = ({ projects = [], isLoading }: ConsultantDash
   const [sortField, setSortField] = useState<"name" | "due_date" | "status">("due_date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
-  // Fetch quotes for all consultant's projects
-  const { data: quotes = [] } = useQuery({
-    queryKey: ["consultant-quotes"],
-    queryFn: async () => {
-      const projectIds = projects.map(p => p.id);
-      const { data, error } = await supabase
-        .from("quotes")
-        .select(`
-          *,
-          contractor:contractor_id (
-            id,
-            full_name,
-            company_name
-          ),
-          trade:trade_id (*),
-          project:project_id (*),
-          files (*)
-        `)
-        .in("project_id", projectIds);
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: projects.length > 0,
-  });
+  const { data: quotes = [] } = useConsultantQuotes(projects);
 
   const filteredAndSortedProjects = useMemo(() => {
     let filtered = [...(projects || [])];
@@ -111,46 +80,19 @@ export const ConsultantDashboard = ({ projects = [], isLoading }: ConsultantDash
 
       <ConsultantStats projects={projects} />
 
-      <Tabs defaultValue="projects" className="w-full">
-        <TabsList>
-          <TabsTrigger value="projects">Projects</TabsTrigger>
-          <TabsTrigger value="quotes">Quote Comparison</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="reports">Custom Reports</TabsTrigger>
-          <TabsTrigger value="customize">Customize</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="projects" className="space-y-4">
-          <ProjectFilters
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter}
-            sortField={sortField}
-            onSortFieldChange={setSortField}
-            sortDirection={sortDirection}
-            onSortDirectionChange={() => setSortDirection(prev => prev === "asc" ? "desc" : "asc")}
-          />
-
-          <ProjectList projects={filteredAndSortedProjects} />
-        </TabsContent>
-
-        <TabsContent value="quotes">
-          <QuoteComparisonTool quotes={quotes} />
-        </TabsContent>
-
-        <TabsContent value="analytics">
-          <ProjectAnalytics />
-        </TabsContent>
-
-        <TabsContent value="reports">
-          <CustomReportBuilder />
-        </TabsContent>
-
-        <TabsContent value="customize">
-          <DashboardCustomizer />
-        </TabsContent>
-      </Tabs>
+      <DashboardTabs
+        projects={projects}
+        filteredProjects={filteredAndSortedProjects}
+        quotes={quotes}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        sortField={sortField}
+        onSortFieldChange={setSortField}
+        sortDirection={sortDirection}
+        onSortDirectionChange={() => setSortDirection(prev => prev === "asc" ? "desc" : "asc")}
+      />
     </div>
   );
 };

@@ -12,6 +12,8 @@ import CreateProject from "./pages/CreateProject";
 import ProjectDetails from "./pages/ProjectDetails";
 import QuoteSubmission from "./pages/QuoteSubmission";
 import Messages from "./pages/Messages";
+import { PasswordReset } from "./components/auth/PasswordReset";
+import { UpdatePassword } from "./components/auth/UpdatePassword";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +60,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/reset-password" element={<PasswordReset />} />
+            <Route path="/update-password" element={<UpdatePassword />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />

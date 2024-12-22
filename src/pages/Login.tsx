@@ -37,11 +37,12 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
+      {/* Left side - Login form */}
       <div className="w-full md:w-1/2 bg-background flex flex-col justify-center items-center p-8">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
             <h1 className="text-4xl font-bold mb-2">Welcome to Quota</h1>
-            <p className="text-muted text-sm uppercase tracking-wider">BY CANOPY</p>
+            <p className="text-muted-foreground text-sm uppercase tracking-wider">BY CANOPY</p>
           </div>
           <Auth
             supabaseClient={supabase}
@@ -53,14 +54,14 @@ const Login = () => {
                     brand: '#9b87f5',
                     brandAccent: '#7E69AB',
                     inputBackground: 'transparent',
-                    inputText: 'white',
+                    inputText: 'inherit',
                   },
                 },
               },
               className: {
                 container: 'w-full',
-                button: 'bg-primary hover:bg-primary/90 text-white',
-                input: 'bg-background/50 border-gray-700 text-foreground',
+                button: 'bg-primary hover:bg-primary/90 text-primary-foreground',
+                input: 'bg-background/50 border-input text-foreground',
                 label: 'text-foreground',
               },
             }}
@@ -69,6 +70,8 @@ const Login = () => {
           />
         </div>
       </div>
+      
+      {/* Right side - Image */}
       <div 
         className="hidden md:block md:w-1/2 bg-cover bg-center"
         style={{

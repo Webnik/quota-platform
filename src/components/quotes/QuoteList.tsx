@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { QuoteResponse } from "@/types/quote";
+import { QuoteResponse, Quote } from "@/types/quote";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
@@ -56,55 +56,71 @@ export const QuoteList = ({ projectId, isConsultant = false }: QuoteListProps) =
 
   return (
     <div className="space-y-4">
-      {quotes.map((quote) => (
-        <Card key={quote.id} className={quote.preferred ? "border-primary" : ""}>
-          <CardHeader className="pb-2">
-            <div className="flex justify-between items-start">
-              <CardTitle className="text-lg font-medium">
-                {quote.contractor.company_name || quote.contractor.full_name}
-              </CardTitle>
-              <Badge className={getStatusColor(quote.status)} variant="secondary">
-                {quote.status}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Amount:</span>
-                <span className="font-medium">{formatCurrency(quote.amount)}</span>
+      {quotes.map((quoteResponse) => {
+        // Transform QuoteResponse to Quote for QuoteManagement
+        const quote: Quote = {
+          id: quoteResponse.id,
+          project_id: quoteResponse.project.id,
+          contractor_id: quoteResponse.contractor.id,
+          trade_id: quoteResponse.trade_id,
+          amount: quoteResponse.amount,
+          status: quoteResponse.status,
+          notes: quoteResponse.notes,
+          preferred: quoteResponse.preferred,
+          created_at: quoteResponse.created_at,
+          updated_at: quoteResponse.updated_at,
+        };
+
+        return (
+          <Card key={quote.id} className={quote.preferred ? "border-primary" : ""}>
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-start">
+                <CardTitle className="text-lg font-medium">
+                  {quoteResponse.contractor.company_name || quoteResponse.contractor.full_name}
+                </CardTitle>
+                <Badge className={getStatusColor(quote.status)} variant="secondary">
+                  {quote.status}
+                </Badge>
               </div>
-              {quote.notes && (
-                <div className="mt-2">
-                  <span className="text-muted-foreground">Notes:</span>
-                  <p className="mt-1 text-sm">{quote.notes}</p>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Amount:</span>
+                  <span className="font-medium">{formatCurrency(quote.amount)}</span>
                 </div>
-              )}
-              {quote.files && quote.files.length > 0 && (
-                <div className="mt-2">
-                  <span className="text-muted-foreground">Attachments:</span>
-                  <div className="mt-1 flex flex-wrap gap-2">
-                    {quote.files.map((file) => (
-                      <a
-                        key={file.id}
-                        href={file.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-primary hover:underline"
-                      >
-                        {file.name}
-                      </a>
-                    ))}
+                {quote.notes && (
+                  <div className="mt-2">
+                    <span className="text-muted-foreground">Notes:</span>
+                    <p className="mt-1 text-sm">{quote.notes}</p>
                   </div>
-                </div>
-              )}
-              {isConsultant && (
-                <QuoteManagement quote={quote} isConsultant={isConsultant} />
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+                )}
+                {quoteResponse.files && quoteResponse.files.length > 0 && (
+                  <div className="mt-2">
+                    <span className="text-muted-foreground">Attachments:</span>
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {quoteResponse.files.map((file) => (
+                        <a
+                          key={file.id}
+                          href={file.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-primary hover:underline"
+                        >
+                          {file.name}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {isConsultant && (
+                  <QuoteManagement quote={quote} isConsultant={isConsultant} />
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 };

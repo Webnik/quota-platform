@@ -8,6 +8,7 @@ export interface Quote {
   amount: number;
   status: string;
   notes: string;
+  preferred: boolean;
   created_at: string;
   updated_at: string;
 }

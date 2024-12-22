@@ -303,6 +303,7 @@ export type Database = {
           created_at: string | null
           id: string
           notes: string | null
+          preferred: boolean | null
           project_id: string | null
           status: string | null
           trade_id: string | null
@@ -314,6 +315,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           notes?: string | null
+          preferred?: boolean | null
           project_id?: string | null
           status?: string | null
           trade_id?: string | null
@@ -325,6 +327,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           notes?: string | null
+          preferred?: boolean | null
           project_id?: string | null
           status?: string | null
           trade_id?: string | null

@@ -4,12 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { QuoteManagement } from "./QuoteManagement";
 
 interface QuoteListProps {
   projectId: string;
+  isConsultant?: boolean;
 }
 
-export const QuoteList = ({ projectId }: QuoteListProps) => {
+export const QuoteList = ({ projectId, isConsultant = false }: QuoteListProps) => {
   const { data: quotes, isLoading } = useQuery({
     queryKey: ['quotes', projectId],
     queryFn: async () => {
@@ -55,7 +57,7 @@ export const QuoteList = ({ projectId }: QuoteListProps) => {
   return (
     <div className="space-y-4">
       {quotes.map((quote) => (
-        <Card key={quote.id}>
+        <Card key={quote.id} className={quote.preferred ? "border-primary" : ""}>
           <CardHeader className="pb-2">
             <div className="flex justify-between items-start">
               <CardTitle className="text-lg font-medium">
@@ -95,6 +97,9 @@ export const QuoteList = ({ projectId }: QuoteListProps) => {
                     ))}
                   </div>
                 </div>
+              )}
+              {isConsultant && (
+                <QuoteManagement quote={quote} isConsultant={isConsultant} />
               )}
             </div>
           </CardContent>

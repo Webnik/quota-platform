@@ -218,6 +218,54 @@ export type Database = {
           },
         ]
       }
+      file_annotations: {
+        Row: {
+          content: string
+          created_at: string | null
+          file_id: string | null
+          id: string
+          position_x: number | null
+          position_y: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          file_id?: string | null
+          id?: string
+          position_x?: number | null
+          position_y?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          file_id?: string | null
+          id?: string
+          position_x?: number | null
+          position_y?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_annotations_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "file_annotations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       file_categories: {
         Row: {
           created_at: string | null
@@ -463,6 +511,8 @@ export type Database = {
           allowed_types: string[] | null
           category_id: string | null
           created_at: string | null
+          encryption_iv: string | null
+          encryption_key: string | null
           id: string
           is_archived: boolean | null
           last_accessed_at: string | null
@@ -480,6 +530,8 @@ export type Database = {
           allowed_types?: string[] | null
           category_id?: string | null
           created_at?: string | null
+          encryption_iv?: string | null
+          encryption_key?: string | null
           id?: string
           is_archived?: boolean | null
           last_accessed_at?: string | null
@@ -497,6 +549,8 @@ export type Database = {
           allowed_types?: string[] | null
           category_id?: string | null
           created_at?: string | null
+          encryption_iv?: string | null
+          encryption_key?: string | null
           id?: string
           is_archived?: boolean | null
           last_accessed_at?: string | null

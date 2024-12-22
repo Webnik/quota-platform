@@ -173,6 +173,83 @@ export type Database = {
           },
         ]
       }
+      file_access_logs: {
+        Row: {
+          action_timestamp: string | null
+          action_type: string
+          file_id: string | null
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_timestamp?: string | null
+          action_type: string
+          file_id?: string | null
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_timestamp?: string | null
+          action_type?: string
+          file_id?: string | null
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_access_logs_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "file_access_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      file_categories: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_categories_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       file_permissions: {
         Row: {
           created_at: string | null
@@ -216,6 +293,65 @@ export type Database = {
           {
             foreignKeyName: "file_permissions_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      file_tag_relations: {
+        Row: {
+          file_id: string
+          tag_id: string
+        }
+        Insert: {
+          file_id: string
+          tag_id: string
+        }
+        Update: {
+          file_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_tag_relations_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "file_tag_relations_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "file_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      file_tags: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_tags_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -269,8 +405,11 @@ export type Database = {
       }
       files: {
         Row: {
+          allowed_types: string[] | null
+          category_id: string | null
           created_at: string | null
           id: string
+          last_accessed_at: string | null
           name: string
           project_id: string | null
           quote_id: string | null
@@ -280,8 +419,11 @@ export type Database = {
           url: string
         }
         Insert: {
+          allowed_types?: string[] | null
+          category_id?: string | null
           created_at?: string | null
           id?: string
+          last_accessed_at?: string | null
           name: string
           project_id?: string | null
           quote_id?: string | null
@@ -291,8 +433,11 @@ export type Database = {
           url: string
         }
         Update: {
+          allowed_types?: string[] | null
+          category_id?: string | null
           created_at?: string | null
           id?: string
+          last_accessed_at?: string | null
           name?: string
           project_id?: string | null
           quote_id?: string | null
@@ -302,6 +447,13 @@ export type Database = {
           url?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "files_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "file_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "files_project_id_fkey"
             columns: ["project_id"]

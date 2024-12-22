@@ -10,13 +10,15 @@ interface FileUploaderProps {
   maxFiles?: number;
   maxSize?: number;
   existingFileId?: string;
+  categoryId?: string;
 }
 
 export const FileUploader = ({ 
   onFilesUploaded, 
   maxFiles = 5, 
   maxSize = 5 * 1024 * 1024,
-  existingFileId 
+  existingFileId,
+  categoryId 
 }: FileUploaderProps) => {
   const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; url: string; size: number; type: string }>>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -88,6 +90,7 @@ export const FileUploader = ({
               url: publicUrl,
               size: file.size,
               type: file.type,
+              category_id: categoryId,
               uploaded_by: (await supabase.auth.getUser()).data.user?.id,
             })
             .select()
@@ -130,7 +133,7 @@ export const FileUploader = ({
     } finally {
       setIsUploading(false);
     }
-  }, [maxFiles, onFilesUploaded, uploadedFiles, existingFileId]);
+  }, [maxFiles, onFilesUploaded, uploadedFiles, existingFileId, categoryId]);
 
   const removeFile = useCallback((fileToRemove: { name: string; url: string }) => {
     const updatedFiles = uploadedFiles.filter(

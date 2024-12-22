@@ -9,10 +9,10 @@ import { Button } from "@/components/ui/button";
 interface RecoveryCodesProps {
   open: boolean;
   onClose: () => void;
-  recoveryCodes: string[];
+  codes: string[];
 }
 
-export const RecoveryCodes = ({ open, onClose, recoveryCodes }: RecoveryCodesProps) => {
+export const RecoveryCodes = ({ open, onClose, codes }: RecoveryCodesProps) => {
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
@@ -24,7 +24,7 @@ export const RecoveryCodes = ({ open, onClose, recoveryCodes }: RecoveryCodesPro
             Save these recovery codes in a secure place. You can use them to access your account if you lose your authenticator device.
           </p>
           <div className="bg-muted p-4 rounded-md space-y-2">
-            {recoveryCodes.map((code, index) => (
+            {codes.map((code, index) => (
               <div key={index} className="font-mono text-sm">
                 {code}
               </div>

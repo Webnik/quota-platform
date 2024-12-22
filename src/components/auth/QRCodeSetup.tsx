@@ -5,8 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface QRCodeSetupProps {
-  factorId: string | null;
-  qrCode: string | null;
+  qrCode: string;
+  factorId: string;
   onVerificationComplete: () => void;
 }
 

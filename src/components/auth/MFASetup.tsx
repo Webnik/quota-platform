@@ -13,6 +13,11 @@ export const MFASetup = () => {
   const [factorId, setFactorId] = useState<string>('');
   const [qrCode, setQrCode] = useState<string>('');
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
+  const [showRecoveryCodes, setShowRecoveryCodes] = useState(false);
+
+  const handleVerificationComplete = () => {
+    setStep('recovery');
+  };
 
   const handleEnrollMFA = async () => {
     try {
@@ -92,24 +97,19 @@ export const MFASetup = () => {
 
         {step === 'verify' && (
           <div className="space-y-4">
-            <QRCodeSetup qrCode={qrCode} />
-            <div className="space-y-2">
-              <Input
-                type="text"
-                placeholder="Enter verification code"
-                value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value)}
-              />
-              <Button onClick={handleVerifyMFA} disabled={!verificationCode}>
-                Verify
-              </Button>
-            </div>
+            <QRCodeSetup 
+              qrCode={qrCode} 
+              factorId={factorId}
+              onVerificationComplete={handleVerificationComplete}
+            />
           </div>
         )}
 
-        {step === 'recovery' && (
-          <RecoveryCodes codes={recoveryCodes} />
-        )}
+        <RecoveryCodes
+          open={showRecoveryCodes}
+          onClose={() => setShowRecoveryCodes(false)}
+          codes={recoveryCodes}
+        />
       </CardContent>
     </Card>
   );

@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { LoginForm } from "@/components/auth/LoginForm";
-import { LoginHeader } from "@/components/auth/LoginHeader";
-import { LoginWrapper } from "@/components/auth/LoginWrapper";
+import LoginForm from "@/components/auth/LoginForm";
+import LoginHeader from "@/components/auth/LoginHeader";
+import LoginWrapper from "@/components/auth/LoginWrapper";
 import { MFAVerification } from "@/components/auth/MFAVerification";
 import { useNavigate } from "react-router-dom";
 

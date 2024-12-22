@@ -11,7 +11,7 @@ interface LoginFormProps {
   onMFARequired: () => void;
 }
 
-export const LoginForm = ({ onMFARequired }: LoginFormProps) => {
+const LoginForm = ({ onMFARequired }: LoginFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -93,3 +93,5 @@ export const LoginForm = ({ onMFARequired }: LoginFormProps) => {
     </Card>
   );
 };
+
+export default LoginForm;

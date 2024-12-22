@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { FileUploader } from "../ProjectFileUpload";
+import { FileUploader } from "@/components/files/upload/FileUploader";
 import { UseFormReturn } from "react-hook-form";
 import { ProjectFormValues } from "../schemas/project-form-schema";
 import { FormField, FormItem, FormLabel } from "@/components/ui/form";
@@ -23,7 +23,7 @@ const ProjectFiles = ({ form }: ProjectFilesProps) => {
           <FileUploader
             onFilesUploaded={onFilesUploaded}
             maxFiles={5}
-            maxSize={5 * 1024 * 1024} // 5MB
+            maxSize={5 * 1024 * 1024}
           />
         </FormItem>
       )}

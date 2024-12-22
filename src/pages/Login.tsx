@@ -1,6 +1,6 @@
-import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import LoginForm from "@/components/auth/LoginForm";
 import LoginSkeleton from "@/components/auth/LoginSkeleton";

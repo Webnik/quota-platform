@@ -1,4 +1,5 @@
 import { Project } from "./project";
+import { Trade } from "./trade";
 
 export interface Quote {
   id: string;
@@ -13,13 +14,14 @@ export interface Quote {
   updated_at: string;
 }
 
-export interface QuoteResponse extends Omit<Quote, 'project_id' | 'contractor_id'> {
+export interface QuoteResponse extends Omit<Quote, 'project_id' | 'contractor_id' | 'trade_id'> {
   contractor: {
     id: string;
     full_name: string;
     company_name: string;
   };
   project: Project;
+  trade?: Trade;
   files: {
     id: string;
     name: string;

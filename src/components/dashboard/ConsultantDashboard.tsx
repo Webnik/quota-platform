@@ -1,6 +1,8 @@
 import { Profile } from "@/types/profile";
 import { Project } from "@/types/project";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface ConsultantDashboardProps {
   projects?: Project[];
@@ -8,6 +10,8 @@ interface ConsultantDashboardProps {
 }
 
 export const ConsultantDashboard = ({ projects, isLoading }: ConsultantDashboardProps) => {
+  const navigate = useNavigate();
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -26,7 +30,12 @@ export const ConsultantDashboard = ({ projects, isLoading }: ConsultantDashboard
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Consultant Dashboard</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Consultant Dashboard</h2>
+        <Button onClick={() => navigate("/projects/new")}>
+          Create Project
+        </Button>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-4 bg-card rounded-lg">
           <h3 className="font-semibold">Active Projects</h3>

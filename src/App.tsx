@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import CreateProject from "./pages/CreateProject";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,11 @@ const App = () => (
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/projects/new" element={
+            <ProtectedRoute>
+              <CreateProject />
             </ProtectedRoute>
           } />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

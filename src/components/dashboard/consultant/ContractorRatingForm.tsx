@@ -33,11 +33,18 @@ export const ContractorRatingForm = ({
 
     setIsSubmitting(true);
     try {
+      // Get the current user's ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
       const { error } = await supabase.from("contractor_ratings").insert({
         contractor_id: contractorId,
         project_id: projectId,
         rating,
         feedback: feedback.trim() || null,
+        created_by: user.id // Add the created_by field
       });
 
       if (error) throw error;

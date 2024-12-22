@@ -12,23 +12,37 @@ const LoginForm = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Check for existing session on mount
+    const checkSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Session check error:", error);
+        setAuthError(error.message);
+        return;
+      }
+      if (session?.user) {
+        toast.success("Welcome back!", {
+          description: "You are already logged in"
+        });
+        navigate("/dashboard");
+      }
+    };
+
+    checkSession();
+
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         toast.success("Successfully logged in", {
-          description: "Welcome back!"
+          description: "Welcome to your dashboard"
         });
         navigate("/dashboard");
       }
     });
 
-    // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        navigate("/dashboard");
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   return (
@@ -62,24 +76,22 @@ const LoginForm = () => {
         }}
         theme="dark"
         providers={[]}
-        view="sign_in"
-        showLinks={true}
-        redirectTo={`${window.location.origin}/dashboard`}
+        redirectTo={window.location.origin + "/dashboard"}
         localization={{
           variables: {
             sign_in: {
-              email_input_placeholder: "Your email address",
-              password_input_placeholder: "Your password",
-              email_label: "Email",
+              email_input_placeholder: "Enter your email address",
+              password_input_placeholder: "Enter your password",
+              email_label: "Email address",
               password_label: "Password",
-              button_label: "Sign in",
-              loading_button_label: "Signing in ...",
+              button_label: "Sign in to your account",
+              loading_button_label: "Signing in...",
               social_provider_text: "Sign in with {{provider}}",
               link_text: "Already have an account? Sign in",
             },
             forgotten_password: {
-              email_input_placeholder: "Your email address",
-              email_label: "Email",
+              email_input_placeholder: "Enter your email address",
+              email_label: "Email address",
               button_label: "Send reset instructions",
               loading_button_label: "Sending reset instructions...",
               link_text: "Forgot your password?",

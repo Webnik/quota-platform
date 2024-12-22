@@ -1,4 +1,3 @@
-import { Profile } from "./profile";
 import { Project } from "./project";
 
 export interface Quote {
@@ -13,16 +12,7 @@ export interface Quote {
   updated_at: string;
 }
 
-export interface QuoteResponse {
-  id: string;
-  amount: number;
-  status: string;
-  notes: string;
-  contractor_id: string;
-  project_id: string;
-  trade_id: string;
-  created_at: string;
-  updated_at: string;
+export interface QuoteResponse extends Omit<Quote, 'project_id' | 'contractor_id'> {
   contractor: {
     full_name: string;
     company_name: string;

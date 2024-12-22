@@ -21,12 +21,13 @@ export const QuoteList = ({ projectId }: QuoteListProps) => {
             full_name,
             company_name
           ),
+          project:project_id (*),
           files (*)
         `)
         .eq('project_id', projectId);
 
       if (error) throw error;
-      return data as QuoteResponse[];
+      return data as unknown as QuoteResponse[];
     },
   });
 

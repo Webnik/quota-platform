@@ -8,6 +8,7 @@ import { ContractorDashboard } from "@/components/dashboard/ContractorDashboard"
 import { ContractorQualityMetrics } from "@/components/analytics/metrics/ContractorQualityMetrics";
 import { ReportExportManager } from "@/components/reports/ReportExportManager";
 import { AdvancedSearch } from "@/components/search/AdvancedSearch";
+import { NotificationPreferences } from "@/components/notifications/NotificationPreferences";
 
 const Dashboard = () => {
   const { profile, isLoading: profileLoading } = useProfile();
@@ -78,6 +79,8 @@ const Dashboard = () => {
       ) : (
         <ContractorDashboard quotes={quotes} projects={projects} isLoading={isLoading} />
       )}
+
+      <NotificationPreferences />
 
       <div className="grid gap-6 md:grid-cols-2">
         <ContractorQualityMetrics />

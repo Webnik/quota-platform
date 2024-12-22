@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-const ProjectSuccessMetrics = () => {
+export const ProjectSuccessMetrics = () => {
   const { data: metrics } = useQuery({
     queryKey: ['project-metrics'],
     queryFn: async () => {
@@ -66,5 +66,3 @@ const ProjectSuccessMetrics = () => {
     </div>
   );
 };
-
-export default ProjectSuccessMetrics;

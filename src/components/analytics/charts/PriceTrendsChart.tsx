@@ -27,6 +27,14 @@ export const PriceTrendsChart = ({ quotes }: PriceTrendsChartProps) => {
     return sum / trendData.length;
   }, [trendData]);
 
+  const getDotFill = (status: string) => {
+    switch(status) {
+      case 'accepted': return "#22c55e";
+      case 'rejected': return "#ef4444";
+      default: return "#8884d8";
+    }
+  };
+
   return (
     <Card className="p-6">
       <h3 className="text-lg font-semibold mb-4">Historical Price Trends</h3>
@@ -64,13 +72,7 @@ export const PriceTrendsChart = ({ quotes }: PriceTrendsChartProps) => {
               stroke="#8884d8" 
               name="Quote Amount"
               dot={{ 
-                fill: (props: any) => {
-                  switch(props.payload.status) {
-                    case 'accepted': return '#22c55e';
-                    case 'rejected': return '#ef4444';
-                    default: return '#8884d8';
-                  }
-                }
+                fill: (props) => getDotFill(props.payload.status)
               }}
             />
           </LineChart>

@@ -1,4 +1,3 @@
-import { Profile } from "@/types/profile";
 import { Project } from "@/types/project";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";

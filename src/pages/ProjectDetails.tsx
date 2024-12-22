@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ProjectHeader } from "@/components/projects/ProjectHeader";
+import ProjectHeader from "@/components/projects/ProjectHeader";
 import { ProjectFiles } from "@/components/projects/ProjectFiles";
 import { ProjectTimelineView } from "@/components/projects/ProjectTimelineView";
 import { QuoteComparison } from "@/components/quotes/QuoteComparison";
@@ -41,13 +41,9 @@ const ProjectDetails = () => {
   return (
     <div className="container mx-auto max-w-7xl space-y-8 p-8">
       <ProjectHeader
-        id={project.id}
-        isLoading={isLoading}
-        name={project.name}
+        projectId={project.id}
+        projectName={project.name}
         status={project.status}
-        dueDate={new Date(project.due_date)}
-        totalQuotes={0}
-        totalAmount={0}
       />
 
       <Tabs defaultValue="quotes" className="w-full">

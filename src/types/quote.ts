@@ -1,5 +1,4 @@
 import { Profile } from "./profile";
-import { Project } from "./project";
 
 export interface Quote {
   id: string;
@@ -11,8 +10,10 @@ export interface Quote {
   notes?: string;
   created_at: string;
   updated_at: string;
-  contractor: Profile;
-  project: Project;
+  contractor: {
+    full_name: string | null;
+    company_name: string | null;
+  };
   files?: {
     id: string;
     name: string;

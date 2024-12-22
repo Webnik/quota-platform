@@ -1,57 +1,84 @@
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useProfile } from "@/hooks/useProfile";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { ConsultantDashboard } from "@/components/dashboard/ConsultantDashboard";
 import { ContractorDashboard } from "@/components/dashboard/ContractorDashboard";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
-import { useProfile } from "@/hooks/useProfile";
-import { useProjectsData } from "@/hooks/useProjectsData";
-import { useQuotesData } from "@/hooks/useQuotesData";
+import { ContractorQualityMetrics } from "@/components/analytics/metrics/ContractorQualityMetrics";
+import { ReportExportManager } from "@/components/reports/ReportExportManager";
+import { AdvancedSearch } from "@/components/search/AdvancedSearch";
 
 const Dashboard = () => {
-  const navigate = useNavigate();
-  const { profile, isLoading } = useProfile();
-  const { projects, projectsLoading } = useProjectsData(profile);
-  const { quotes, quotesLoading } = useQuotesData(profile);
+  const { profile } = useProfile();
+  const [quotes, setQuotes] = useState([]);
+  const [projects, setProjects] = useState([]);
 
-  if (isLoading) {
-    return <DashboardSkeleton />;
-  }
+  const { data, isLoading } = useQuery({
+    queryKey: ["dashboard-data"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
 
-  if (!profile) {
-    return (
-      <div className="container py-8 text-center">
-        <h1 className="text-2xl font-bold mb-4">Welcome to Quota</h1>
-        <p className="text-muted-foreground mb-6">
-          It looks like you're new here. Please complete your profile to get started.
-        </p>
-        <Button onClick={() => navigate('/complete-profile')}>
-          Complete Profile
-        </Button>
-      </div>
-    );
-  }
+      const quotesPromise = supabase
+        .from("quotes")
+        .select(`
+          *,
+          contractor:contractor_id (*),
+          project:project_id (*),
+          trade:trade_id (*)
+        `)
+        .order("created_at", { ascending: false });
+
+      const projectsPromise = supabase
+        .from("projects")
+        .select(`
+          *,
+          consultant:consultant_id (*)
+        `)
+        .order("created_at", { ascending: false });
+
+      const [quotesResponse, projectsResponse] = await Promise.all([
+        quotesPromise,
+        projectsPromise,
+      ]);
+
+      if (quotesResponse.error) throw quotesResponse.error;
+      if (projectsResponse.error) throw projectsResponse.error;
+
+      return {
+        quotes: quotesResponse.data,
+        projects: projectsResponse.data,
+      };
+    },
+  });
+
+  useEffect(() => {
+    if (data) {
+      setQuotes(data.quotes);
+      setProjects(data.projects);
+    }
+  }, [data]);
 
   return (
-    <div className="container py-8 space-y-8">
-      <DashboardHeader profile={profile} />
+    <div className="container mx-auto p-6 space-y-6">
+      <DashboardHeader />
+      
+      <div className="grid gap-6 md:grid-cols-2">
+        <AdvancedSearch />
+        <ReportExportManager />
+      </div>
 
-      {profile.role === 'consultant' ? (
-        <ConsultantDashboard 
-          projects={projects} 
-          isLoading={projectsLoading} 
-        />
-      ) : profile.role === 'contractor' ? (
-        <ContractorDashboard 
-          quotes={quotes} 
-          projects={projects}
-          isLoading={quotesLoading || projectsLoading} 
-        />
+      {profile?.role === 'consultant' ? (
+        <ConsultantDashboard quotes={quotes} projects={projects} isLoading={isLoading} />
       ) : (
-        <div className="text-center py-8 text-muted-foreground">
-          Unknown user role. Please contact support.
-        </div>
+        <ContractorDashboard quotes={quotes} projects={projects} isLoading={isLoading} />
       )}
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <ContractorQualityMetrics />
+        {/* Other metrics components */}
+      </div>
     </div>
   );
 };

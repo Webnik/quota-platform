@@ -6,7 +6,7 @@ import { useState, useMemo } from "react";
 import { ConsultantStats } from "./consultant/ConsultantStats";
 import { ProjectFilters } from "./consultant/ProjectFilters";
 import { ProjectList } from "./consultant/ProjectList";
-import { ProjectAnalytics } from "../analytics/ProjectAnalytics";
+import ProjectAnalytics from "../analytics/ProjectAnalytics";
 import { CustomReportBuilder } from "./CustomReportBuilder";
 import { DashboardCustomizer } from "./DashboardCustomizer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -106,7 +106,7 @@ export const ConsultantDashboard = ({ projects = [], isLoading }: ConsultantDash
         </TabsContent>
 
         <TabsContent value="analytics">
-          <ProjectAnalytics projects={projects} />
+          <ProjectAnalytics />
         </TabsContent>
 
         <TabsContent value="reports">

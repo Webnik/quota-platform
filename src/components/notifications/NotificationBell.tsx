@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface Notification {
   id: string;
@@ -21,15 +22,31 @@ interface Notification {
 export function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const { data: notifications, refetch } = useQuery({
+  const { data: notifications, refetch, error } = useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user) {
+        throw new Error("No authenticated user");
+      }
+
+      const { data, error } = await supabase
         .from("notifications")
         .select("*")
         .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching notifications:", error);
+        throw error;
+      }
+
       return (data as Notification[]) || [];
     },
+    retry: 1,
+    onError: (error) => {
+      console.error("Failed to fetch notifications:", error);
+      toast.error("Failed to load notifications");
+    }
   });
 
   useEffect(() => {
@@ -39,11 +56,19 @@ export function NotificationBell() {
   }, [notifications]);
 
   const markAsRead = async (id: string) => {
-    await supabase
-      .from("notifications")
-      .update({ read: true })
-      .eq("id", id);
-    refetch();
+    try {
+      const { error } = await supabase
+        .from("notifications")
+        .update({ read: true })
+        .eq("id", id);
+      
+      if (error) throw error;
+      
+      refetch();
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      toast.error("Failed to mark notification as read");
+    }
   };
 
   return (
@@ -62,7 +87,9 @@ export function NotificationBell() {
         <ScrollArea className="h-80">
           <div className="space-y-4 p-4">
             <h4 className="font-medium leading-none mb-4">Notifications</h4>
-            {notifications?.length === 0 ? (
+            {error ? (
+              <p className="text-sm text-destructive">Failed to load notifications</p>
+            ) : notifications?.length === 0 ? (
               <p className="text-sm text-muted-foreground">No notifications</p>
             ) : (
               notifications?.map((notification) => (

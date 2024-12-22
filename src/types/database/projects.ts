@@ -31,4 +31,13 @@ export interface ProjectsTable {
     created_at?: string | null;
     updated_at?: string | null;
   };
+  Relationships: [
+    {
+      foreignKeyName: "projects_consultant_id_fkey";
+      columns: ["consultant_id"];
+      isOneToOne: false;
+      referencedRelation: "profiles";
+      referencedColumns: ["id"];
+    }
+  ];
 }

@@ -28,6 +28,15 @@ export interface ProfilesTable {
     created_at?: string | null;
     updated_at?: string | null;
   };
+  Relationships: [
+    {
+      foreignKeyName: "profiles_id_fkey";
+      columns: ["id"];
+      isOneToOne: true;
+      referencedRelation: "users";
+      referencedColumns: ["id"];
+    }
+  ];
 }
 
 export type Profile = ProfilesTable["Row"];

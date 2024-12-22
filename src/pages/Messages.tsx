@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { MessageList } from "@/components/messages/MessageList";
 import { MessageThread } from "@/components/messages/MessageThread";
 import { useProfile } from "@/hooks/useProfile";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MessageThread as MessageThreadType } from "@/types/message";
 
 const Messages = () => {
   const { profile } = useProfile();
@@ -18,13 +19,16 @@ const Messages = () => {
         .select(`
           *,
           participants:message_thread_participants(
-            user:profiles(*)
+            user:profiles(
+              full_name,
+              avatar_url
+            )
           )
         `)
         .order("updated_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as MessageThreadType[];
     },
   });
 

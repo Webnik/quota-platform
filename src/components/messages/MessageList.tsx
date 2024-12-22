@@ -2,9 +2,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
+import { MessageThread } from "@/types/message";
 
 interface MessageListProps {
-  threads: any[];
+  threads: MessageThread[];
   selectedThread: string | null;
   onSelectThread: (threadId: string) => void;
 }
@@ -37,9 +38,11 @@ export const MessageList = ({ threads, selectedThread, onSelectThread }: Message
                   {formatDistanceToNow(new Date(thread.updated_at), { addSuffix: true })}
                 </span>
               </div>
-              <p className="text-sm text-muted-foreground truncate">
-                {thread.last_message}
-              </p>
+              {thread.last_message && (
+                <p className="text-sm text-muted-foreground truncate">
+                  {thread.last_message}
+                </p>
+              )}
             </div>
           </div>
         ))}

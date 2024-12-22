@@ -7,16 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send } from "lucide-react";
 import { toast } from "sonner";
-
-interface Message {
-  id: string;
-  content: string;
-  sender_id: string;
-  created_at: string;
-  sender: {
-    full_name: string;
-  };
-}
+import { Message } from "@/types/message";
 
 export const MessageThread = ({ threadId }: { threadId: string }) => {
   const { profile } = useProfile();
@@ -29,7 +20,10 @@ export const MessageThread = ({ threadId }: { threadId: string }) => {
       const { data, error } = await supabase
         .from("messages")
         .select(`
-          *,
+          id,
+          content,
+          sender_id,
+          created_at,
           sender:profiles(full_name)
         `)
         .eq("thread_id", threadId)

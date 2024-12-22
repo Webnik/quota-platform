@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { format, isAfter, isBefore, addDays } from 'date-fns';
+import { format, isAfter, isBefore, addDays, differenceInDays } from 'date-fns';
 
 export const ProjectDelayChart = () => {
   const { data: delayData } = useQuery({
@@ -18,23 +18,48 @@ export const ProjectDelayChart = () => {
       const now = new Date();
       const warningThreshold = addDays(now, 7); // Projects due within 7 days
 
-      const delayed = projects.filter(p => isAfter(now, new Date(p.due_date))).length;
-      const atRisk = projects.filter(p => {
-        const dueDate = new Date(p.due_date);
-        return isBefore(now, dueDate) && isBefore(dueDate, warningThreshold);
-      }).length;
-      const onTime = projects.filter(p => isBefore(now, new Date(p.due_date))).length - atRisk;
+      const projectsWithDelay = projects.map(project => {
+        const dueDate = new Date(project.due_date);
+        const delay = differenceInDays(now, dueDate);
+        
+        let status;
+        if (isAfter(now, dueDate)) {
+          status = 'Delayed';
+        } else if (isBefore(dueDate, warningThreshold)) {
+          status = 'At Risk';
+        } else {
+          status = 'On Time';
+        }
 
-      return [
-        { name: 'Delayed', value: delayed, fill: '#ef4444' },
-        { name: 'At Risk', value: atRisk, fill: '#f59e0b' },
-        { name: 'On Time', value: onTime, fill: '#22c55e' }
-      ];
+        return {
+          ...project,
+          delay,
+          status
+        };
+      });
+
+      const delayCategories = {
+        'Delayed': { count: 0, avgDelay: 0, fill: '#ef4444' },
+        'At Risk': { count: 0, avgDelay: 0, fill: '#f59e0b' },
+        'On Time': { count: 0, avgDelay: 0, fill: '#22c55e' }
+      };
+
+      projectsWithDelay.forEach(project => {
+        delayCategories[project.status].count++;
+        delayCategories[project.status].avgDelay += Math.abs(project.delay);
+      });
+
+      return Object.entries(delayCategories).map(([status, data]) => ({
+        name: status,
+        projects: data.count,
+        averageDelay: data.count > 0 ? Math.round(data.avgDelay / data.count) : 0,
+        fill: data.fill
+      }));
     }
   });
 
   return (
-    <Card className="col-span-2">
+    <Card>
       <CardHeader>
         <CardTitle>Project Delay Analysis</CardTitle>
       </CardHeader>
@@ -44,10 +69,31 @@ export const ProjectDelayChart = () => {
             <BarChart data={delayData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
+              <YAxis yAxisId="left" orientation="left" />
+              <YAxis 
+                yAxisId="right" 
+                orientation="right"
+                label={{ value: 'Avg Days', angle: 90, position: 'insideRight' }}
+              />
+              <Tooltip 
+                formatter={(value, name) => [
+                  name === 'averageDelay' ? `${value} days` : value,
+                  name === 'averageDelay' ? 'Average Delay' : 'Projects'
+                ]}
+              />
               <Legend />
-              <Bar dataKey="value" name="Projects" />
+              <Bar 
+                dataKey="projects" 
+                fill="#8884d8" 
+                yAxisId="left"
+                name="Number of Projects"
+              />
+              <Bar 
+                dataKey="averageDelay" 
+                fill="#82ca9d" 
+                yAxisId="right"
+                name="Average Delay (Days)"
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>

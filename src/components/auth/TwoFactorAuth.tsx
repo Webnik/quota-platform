@@ -13,6 +13,7 @@ import { useProfile } from "@/hooks/useProfile";
 
 export function TwoFactorAuth() {
   const [factorId, setFactorId] = useState<string | null>(null);
+  const [challengeId, setChallengeId] = useState<string | null>(null);
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [verifyCode, setVerifyCode] = useState("");
   const [isEnrolling, setIsEnrolling] = useState(false);
@@ -43,14 +44,17 @@ export function TwoFactorAuth() {
 
     try {
       setIsVerifying(true);
-      const { error } = await supabase.auth.mfa.challenge({
+      const { data, error } = await supabase.auth.mfa.challenge({
         factorId: factorId
       });
       
       if (error) throw error;
 
+      setChallengeId(data.id);
+
       const { error: verifyError } = await supabase.auth.mfa.verify({
         factorId: factorId,
+        challengeId: data.id,
         code: verifyCode,
       });
 
@@ -59,6 +63,7 @@ export function TwoFactorAuth() {
       toast.success('Two-factor authentication enabled successfully');
       setQrCode(null);
       setFactorId(null);
+      setChallengeId(null);
       setVerifyCode("");
     } catch (error) {
       console.error('Error verifying 2FA:', error);
@@ -106,7 +111,7 @@ export function TwoFactorAuth() {
                 render={({ slots }) => (
                   <InputOTPGroup className="gap-2">
                     {slots.map((slot, index) => (
-                      <InputOTPSlot key={index} {...slot} />
+                      <InputOTPSlot key={index} {...slot} index={index} />
                     ))}
                   </InputOTPGroup>
                 )}

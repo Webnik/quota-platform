@@ -1063,7 +1063,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cleanup_sample_data: {
+        Args: {
+          leave_some: boolean
+        }
+        Returns: undefined
+      }
+      populate_sample_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       notification_type:

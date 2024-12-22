@@ -65,7 +65,7 @@ const Dashboard = () => {
     queryFn: async () => {
       if (!profile) return [];
       
-      const query = supabase
+      let query = supabase
         .from("projects")
         .select(`
           id,
@@ -76,14 +76,19 @@ const Dashboard = () => {
         `);
 
       if (profile.role === 'consultant') {
-        query.eq('consultant_id', profile.id);
+        query = query.eq('consultant_id', profile.id);
       } else if (profile.role === 'contractor') {
-        query.in('id', 
-          supabase
-            .from('quotes')
-            .select('project_id')
-            .eq('contractor_id', profile.id)
-        );
+        // First get the project IDs where the contractor has quotes
+        const { data: projectIds } = await supabase
+          .from('quotes')
+          .select('project_id')
+          .eq('contractor_id', profile.id);
+        
+        if (projectIds && projectIds.length > 0) {
+          query = query.in('id', projectIds.map(p => p.project_id));
+        } else {
+          return []; // Return empty array if no projects found
+        }
       }
 
       const { data, error } = await query;

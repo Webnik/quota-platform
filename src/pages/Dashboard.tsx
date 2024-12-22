@@ -42,7 +42,7 @@ const Dashboard = () => {
 
       const [quotesResponse, projectsResponse] = await Promise.all([
         quotesPromise,
-        projectsPromise,
+        projectsResponse,
       ]);
 
       if (quotesResponse.error) throw quotesResponse.error;

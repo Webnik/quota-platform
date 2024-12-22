@@ -22,11 +22,13 @@ interface Notification {
 export function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const { data: notifications, refetch, error } = useQuery({
+  const { data: notifications = [], refetch } = useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session?.session?.user) {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+      
+      if (!sessionData.session?.user) {
         throw new Error("No authenticated user");
       }
 
@@ -48,13 +50,6 @@ export function NotificationBell() {
     }
   });
 
-  // Show error toast when query fails
-  useEffect(() => {
-    if (error) {
-      toast.error("Failed to load notifications");
-    }
-  }, [error]);
-
   useEffect(() => {
     if (notifications) {
       setUnreadCount(notifications.filter(n => !n.read).length);
@@ -70,7 +65,7 @@ export function NotificationBell() {
       
       if (error) throw error;
       
-      refetch();
+      await refetch();
     } catch (error) {
       console.error("Error marking notification as read:", error);
       toast.error("Failed to mark notification as read");
@@ -93,9 +88,7 @@ export function NotificationBell() {
         <ScrollArea className="h-80">
           <div className="space-y-4 p-4">
             <h4 className="font-medium leading-none mb-4">Notifications</h4>
-            {error ? (
-              <p className="text-sm text-destructive">Failed to load notifications</p>
-            ) : notifications?.length === 0 ? (
+            {notifications?.length === 0 ? (
               <p className="text-sm text-muted-foreground">No notifications</p>
             ) : (
               notifications?.map((notification) => (

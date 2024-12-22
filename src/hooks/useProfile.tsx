@@ -18,13 +18,13 @@ export const useProfile = () => {
         setError(null);
 
         // First check if we have an authenticated user
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
         
-        if (authError) {
-          throw authError;
+        if (sessionError) {
+          throw sessionError;
         }
 
-        if (!user) {
+        if (!sessionData.session?.user) {
           setIsLoading(false);
           navigate('/login');
           return;
@@ -34,8 +34,8 @@ export const useProfile = () => {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
-          .eq('id', user.id)
-          .maybeSingle();
+          .eq('id', sessionData.session.user.id)
+          .single();
         
         if (profileError) {
           console.error('Profile error:', profileError);
@@ -48,14 +48,12 @@ export const useProfile = () => {
         }
 
         if (!profileData) {
-          console.warn('No profile found for user:', user.id);
+          console.warn('No profile found for user:', sessionData.session.user.id);
           toast({
             title: "Profile not found",
             description: "Please complete your profile setup",
             variant: "destructive",
           });
-          // You might want to redirect to a profile setup page here
-          // navigate('/setup-profile');
           return;
         }
 

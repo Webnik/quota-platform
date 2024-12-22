@@ -125,7 +125,6 @@ const LoginForm = () => {
                 loading_button_label: "Signing in ...",
                 social_provider_text: "Sign in with {{provider}}",
                 link_text: "Already have an account? Sign in",
-                forgot_password_label: "Forgot your password?",
               },
               forgotten_password: {
                 email_input_placeholder: "Your email address",

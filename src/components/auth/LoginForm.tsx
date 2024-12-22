@@ -3,8 +3,35 @@ import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import ProfileForm from "./ProfileForm";
 
 const LoginForm = () => {
+  const [showProfile, setShowProfile] = useState(false);
+
+  useEffect(() => {
+    const checkProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name, company_name')
+          .eq('id', user.id)
+          .single();
+
+        if (profile && (!profile.full_name || !profile.company_name)) {
+          setShowProfile(true);
+        }
+      }
+    };
+
+    checkProfile();
+  }, []);
+
+  if (showProfile) {
+    return <ProfileForm />;
+  }
+
   return (
     <div className="w-full max-w-md space-y-8">
       <div className="text-center space-y-4">

@@ -11,10 +11,10 @@ import { Search, Filter } from "lucide-react";
 
 export const AdvancedSearch = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTrade, setSelectedTrade] = useState("");
+  const [selectedTrade, setSelectedTrade] = useState("all");
   const [dateRange, setDateRange] = useState({ from: null, to: null });
   const [priceRange, setPriceRange] = useState([0, 100000]);
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState("all");
 
   const { data: searchResults, isLoading } = useQuery({
     queryKey: ['advanced-search', searchTerm, selectedTrade, dateRange, priceRange, status],
@@ -41,13 +41,13 @@ export const AdvancedSearch = () => {
       if (searchTerm) {
         query = query.or(`project.name.ilike.%${searchTerm}%,project.description.ilike.%${searchTerm}%`);
       }
-      if (selectedTrade) {
+      if (selectedTrade !== "all") {
         query = query.eq('trade_id', selectedTrade);
       }
       if (dateRange.from && dateRange.to) {
         query = query.gte('created_at', dateRange.from).lte('created_at', dateRange.to);
       }
-      if (status) {
+      if (status !== "all") {
         query = query.eq('status', status);
       }
       query = query.gte('amount', priceRange[0]).lte('amount', priceRange[1]);
@@ -56,7 +56,7 @@ export const AdvancedSearch = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!(searchTerm || selectedTrade || dateRange.from || status || priceRange[0] !== 0)
+    enabled: !!(searchTerm || selectedTrade !== "all" || dateRange.from || status !== "all" || priceRange[0] !== 0)
   });
 
   return (
@@ -89,8 +89,10 @@ export const AdvancedSearch = () => {
                 <SelectValue placeholder="Select trade" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Trades</SelectItem>
-                {/* Add trade options dynamically */}
+                <SelectItem value="all">All Trades</SelectItem>
+                <SelectItem value="electrical">Electrical</SelectItem>
+                <SelectItem value="plumbing">Plumbing</SelectItem>
+                <SelectItem value="carpentry">Carpentry</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -102,7 +104,7 @@ export const AdvancedSearch = () => {
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="accepted">Accepted</SelectItem>
                 <SelectItem value="rejected">Rejected</SelectItem>

@@ -1,12 +1,13 @@
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import ProfileForm from "./ProfileForm";
 import { motion, AnimatePresence } from "framer-motion";
+import ProfileForm from "./ProfileForm";
+import LoginLoader from "./LoginLoader";
+import LoginHeader from "./LoginHeader";
+import LoginAlert from "./LoginAlert";
 
 const LoginForm = () => {
   const [showProfile, setShowProfile] = useState(false);
@@ -54,14 +55,7 @@ const LoginForm = () => {
   }, []);
 
   if (isLoading) {
-    return (
-      <div className="w-full max-w-md space-y-8">
-        <div className="flex flex-col items-center justify-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Loading your profile...</p>
-        </div>
-      </div>
-    );
+    return <LoginLoader />;
   }
 
   if (showProfile) {
@@ -88,28 +82,8 @@ const LoginForm = () => {
         transition={{ duration: 0.3 }}
         className="w-full max-w-md space-y-8"
       >
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">
-            Welcome to Quota
-          </h1>
-          <p className="text-muted-foreground text-sm uppercase tracking-widest font-medium">
-            BY CANOPY
-          </p>
-        </div>
-
-        <Alert variant="default" className="border-accent/20 bg-accent/5">
-          <AlertCircle className="h-4 w-4 text-accent" />
-          <AlertDescription className="text-foreground/80">
-            Sign in to manage your construction projects and quotes efficiently.
-          </AlertDescription>
-        </Alert>
-
-        {authError && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{authError}</AlertDescription>
-          </Alert>
-        )}
+        <LoginHeader />
+        <LoginAlert error={authError} />
 
         <Auth
           supabaseClient={supabase}

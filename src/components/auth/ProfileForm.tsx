@@ -2,18 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import ProfileHeader from "./ProfileHeader";
+import ProfileAlert from "./ProfileAlert";
+import ProfileFormFields from "./ProfileFormFields";
 
 const ProfileForm = () => {
   const navigate = useNavigate();
@@ -87,71 +79,19 @@ const ProfileForm = () => {
 
   return (
     <div className="w-full max-w-md space-y-8">
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">
-          Complete Your Profile
-        </h1>
-        <p className="text-muted-foreground text-sm uppercase tracking-widest font-medium">
-          BY CANOPY
-        </p>
-      </div>
-
-      <Alert variant="default" className="border-accent/20 bg-accent/5">
-        <AlertCircle className="h-4 w-4 text-accent" />
-        <AlertDescription className="text-foreground/80">
-          Please provide your details to complete your profile setup.
-        </AlertDescription>
-      </Alert>
+      <ProfileHeader />
+      <ProfileAlert />
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="fullName">Full Name</Label>
-          <Input
-            id="fullName"
-            type="text"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            placeholder="John Doe"
-            required
-            className="bg-background/50 border-accent/20 text-foreground focus:border-accent"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="companyName">Company Name</Label>
-          <Input
-            id="companyName"
-            type="text"
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
-            placeholder="Acme Inc."
-            required
-            className="bg-background/50 border-accent/20 text-foreground focus:border-accent"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="role">Role</Label>
-          <Select
-            value={role}
-            onValueChange={setRole}
-            disabled={!!currentProfile?.role}
-          >
-            <SelectTrigger className="w-full bg-background/50 border-accent/20 text-foreground focus:border-accent">
-              <SelectValue placeholder="Select your role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="consultant">Consultant</SelectItem>
-              <SelectItem value="contractor">Contractor</SelectItem>
-              <SelectItem value="project_manager">Project Manager</SelectItem>
-            </SelectContent>
-          </Select>
-          {currentProfile?.role && (
-            <p className="text-sm text-muted-foreground">
-              Role cannot be changed after initial setup
-            </p>
-          )}
-        </div>
+        <ProfileFormFields
+          fullName={fullName}
+          setFullName={setFullName}
+          companyName={companyName}
+          setCompanyName={setCompanyName}
+          role={role}
+          setRole={setRole}
+          currentProfile={currentProfile}
+        />
 
         <Button
           type="submit"

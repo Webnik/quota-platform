@@ -11,7 +11,7 @@ export default function Populate() {
   const handlePopulate = async () => {
     try {
       setIsPopulating(true);
-      const { error } = await supabase.rpc('populate_sample_data');
+      const { error } = await supabase.rpc('populate_sample_data', {});
       if (error) throw error;
       toast.success("Sample data created successfully!");
     } catch (error) {

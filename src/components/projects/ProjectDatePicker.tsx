@@ -16,7 +16,7 @@ export const ProjectDatePicker = ({ form }: ProjectDatePickerProps) => {
   return (
     <FormField
       control={form.control}
-      name="due_date"
+      name="dueDate"
       render={({ field }) => (
         <FormItem>
           <FormLabel>Due Date</FormLabel>

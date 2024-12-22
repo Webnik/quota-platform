@@ -24,6 +24,7 @@ export function CreateProjectForm() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedContractors, setSelectedContractors] = useState<Array<{ tradeId: string, contractorId: string }>>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const form = useForm({
     resolver: zodResolver(projectFormSchema),
@@ -68,6 +69,7 @@ export function CreateProjectForm() {
               trade_id: tradeId,
               contractor_id: contractorId,
               status: "pending",
+              amount: 0, // Adding default amount as it's required
             }))
           );
 
@@ -91,6 +93,10 @@ export function CreateProjectForm() {
       // Add the new selection
       return [...filtered, { tradeId, contractorId }];
     });
+  };
+
+  const handleFileSelect = (file: File | null) => {
+    setSelectedFile(file);
   };
 
   return (
@@ -131,13 +137,13 @@ export function CreateProjectForm() {
           control={form.control}
           name="dueDate"
           render={({ field }) => (
-            <ProjectDatePicker field={field} />
+            <ProjectDatePicker form={form} />
           )}
         />
 
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Project Files</h3>
-          <ProjectFileUpload />
+          <ProjectFileUpload onFileSelect={handleFileSelect} />
         </div>
 
         <div className="space-y-4">

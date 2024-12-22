@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import ProjectHeader from "@/components/projects/ProjectHeader";
 import { ProjectFiles } from "@/components/projects/ProjectFiles";
 import { ProjectTimelineView } from "@/components/projects/ProjectTimelineView";
+import { ProjectComments } from "@/components/projects/ProjectComments";
 import { QuoteComparison } from "@/components/quotes/QuoteComparison";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
@@ -51,6 +52,7 @@ const ProjectDetails = () => {
           <TabsTrigger value="quotes">Quotes</TabsTrigger>
           <TabsTrigger value="files">Files</TabsTrigger>
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
+          <TabsTrigger value="comments">Comments</TabsTrigger>
         </TabsList>
         <TabsContent value="quotes" className="mt-6">
           <QuoteComparison projectId={id!} />
@@ -60,6 +62,9 @@ const ProjectDetails = () => {
         </TabsContent>
         <TabsContent value="timeline" className="mt-6">
           <ProjectTimelineView projectId={id!} />
+        </TabsContent>
+        <TabsContent value="comments" className="mt-6">
+          <ProjectComments projectId={id!} />
         </TabsContent>
       </Tabs>
     </div>

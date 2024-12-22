@@ -79,12 +79,12 @@ export const PriceTrendsChart = ({ quotes }: PriceTrendsChartProps) => {
               dataKey="amount" 
               stroke="#8884d8" 
               name="Quote Amount"
-              dot={(props) => ({
-                fill: getDotFill(props.payload),
+              dot={{
+                fill: (props: any) => getDotFill(props.payload),
                 r: 4,
                 strokeWidth: 1,
                 stroke: "#fff"
-              })}
+              }}
             />
           </LineChart>
         </ResponsiveContainer>

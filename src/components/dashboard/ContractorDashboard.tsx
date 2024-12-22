@@ -3,6 +3,8 @@ import { Project } from "@/types/project";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ContractorStats } from "./contractor/ContractorStats";
 import { QuotesList } from "./contractor/QuotesList";
+import { QuoteAnalytics } from "../analytics/QuoteAnalytics";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ContractorDashboardProps {
   quotes?: QuoteResponse[];
@@ -24,7 +26,21 @@ export const ContractorDashboard = ({ quotes = [], projects = [], isLoading }: C
   return (
     <div className="space-y-8">
       <ContractorStats quotes={quotes} />
-      <QuotesList quotes={quotes} />
+      
+      <Tabs defaultValue="quotes" className="w-full">
+        <TabsList>
+          <TabsTrigger value="quotes">Quotes</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="quotes">
+          <QuotesList quotes={quotes} />
+        </TabsContent>
+
+        <TabsContent value="analytics">
+          <QuoteAnalytics quotes={quotes} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

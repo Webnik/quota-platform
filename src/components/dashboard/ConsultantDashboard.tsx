@@ -6,6 +6,8 @@ import { useState, useMemo } from "react";
 import { ConsultantStats } from "./consultant/ConsultantStats";
 import { ProjectFilters } from "./consultant/ProjectFilters";
 import { ProjectList } from "./consultant/ProjectList";
+import { ProjectAnalytics } from "../analytics/ProjectAnalytics";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ConsultantDashboardProps {
   projects?: Project[];
@@ -78,20 +80,31 @@ export const ConsultantDashboard = ({ projects = [], isLoading }: ConsultantDash
 
       <ConsultantStats projects={projects} />
 
-      <div className="space-y-4">
-        <ProjectFilters
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
-          sortField={sortField}
-          onSortFieldChange={setSortField}
-          sortDirection={sortDirection}
-          onSortDirectionChange={() => setSortDirection(prev => prev === "asc" ? "desc" : "asc")}
-        />
+      <Tabs defaultValue="projects" className="w-full">
+        <TabsList>
+          <TabsTrigger value="projects">Projects</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
 
-        <ProjectList projects={filteredAndSortedProjects} />
-      </div>
+        <TabsContent value="projects" className="space-y-4">
+          <ProjectFilters
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            sortField={sortField}
+            onSortFieldChange={setSortField}
+            sortDirection={sortDirection}
+            onSortDirectionChange={() => setSortDirection(prev => prev === "asc" ? "desc" : "asc")}
+          />
+
+          <ProjectList projects={filteredAndSortedProjects} />
+        </TabsContent>
+
+        <TabsContent value="analytics">
+          <ProjectAnalytics projects={projects} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

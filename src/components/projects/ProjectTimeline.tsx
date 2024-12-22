@@ -1,173 +1,90 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Calendar, Clock, MessageSquare } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { CalendarClock, CheckCircle2, CircleDot, MessageSquare, FileText } from "lucide-react";
 
 interface TimelineEvent {
   id: string;
   event_type: string;
   description: string;
   created_at: string;
-  created_by: string;
-}
-
-interface Comment {
-  id: string;
-  content: string;
-  created_at: string;
-  user_id: string;
-  user: {
+  created_by: {
     full_name: string;
   };
 }
 
-interface ProjectTimelineProps {
-  projectId: string;
-}
+const getEventIcon = (eventType: string) => {
+  switch (eventType) {
+    case 'status_change':
+      return <CheckCircle2 className="h-4 w-4" />;
+    case 'comment':
+      return <MessageSquare className="h-4 w-4" />;
+    case 'file':
+      return <FileText className="h-4 w-4" />;
+    default:
+      return <CircleDot className="h-4 w-4" />;
+  }
+};
 
-export const ProjectTimeline = ({ projectId }: ProjectTimelineProps) => {
-  const [newComment, setNewComment] = useState("");
-
-  // Fetch timeline events
-  const { data: timelineEvents, isLoading: eventsLoading } = useQuery({
-    queryKey: ["timeline", projectId],
+export const ProjectTimeline = ({ projectId }: { projectId: string }) => {
+  const { data: events, isLoading } = useQuery({
+    queryKey: ['project-timeline', projectId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("project_timeline")
+        .from('project_timeline')
         .select(`
           id,
           event_type,
           description,
           created_at,
-          created_by,
-          profiles:created_by (full_name)
+          created_by (
+            full_name
+          )
         `)
-        .eq("project_id", projectId)
-        .order("created_at", { ascending: false });
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as TimelineEvent[];
     },
   });
 
-  // Fetch comments
-  const { data: comments, isLoading: commentsLoading } = useQuery({
-    queryKey: ["comments", projectId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("project_comments")
-        .select(`
-          id,
-          content,
-          created_at,
-          user_id,
-          profiles:user_id (full_name)
-        `)
-        .eq("project_id", projectId)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const handleAddComment = async () => {
-    if (!newComment.trim()) return;
-
-    try {
-      const { error } = await supabase
-        .from("project_comments")
-        .insert({
-          project_id: projectId,
-          content: newComment,
-        });
-
-      if (error) throw error;
-
-      toast.success("Comment added successfully");
-      setNewComment("");
-    } catch (error) {
-      console.error("Error adding comment:", error);
-      toast.error("Failed to add comment");
-    }
-  };
-
-  if (eventsLoading || commentsLoading) {
+  if (isLoading) {
     return (
-      <div className="space-y-4 animate-pulse">
-        <div className="h-20 bg-card rounded-lg" />
-        <div className="h-20 bg-card rounded-lg" />
+      <div className="space-y-4">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      {/* Timeline Events */}
+    <ScrollArea className="h-[400px] pr-4">
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          Timeline
-        </h3>
-        <div className="space-y-4">
-          {timelineEvents?.map((event) => (
-            <div key={event.id} className="bg-card p-4 rounded-lg space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium capitalize">
-                  {event.event_type.replace("_", " ")}
-                </span>
-                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  {new Date(event.created_at).toLocaleDateString()}
+        {events?.map((event) => (
+          <div key={event.id} className="flex gap-4 items-start">
+            <div className="mt-1 bg-muted p-2 rounded-full">
+              {getEventIcon(event.event_type)}
+            </div>
+            <div className="flex-1 space-y-1">
+              <p className="text-sm text-foreground">{event.description}</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <CalendarClock className="h-3 w-3" />
+                <span>
+                  {new Date(event.created_at).toLocaleDateString()} by {event.created_by?.full_name}
                 </span>
               </div>
-              <p className="text-sm text-muted-foreground">{event.description}</p>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
+        {events?.length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-4">
+            No timeline events yet
+          </p>
+        )}
       </div>
-
-      {/* Comments Section */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <MessageSquare className="h-5 w-5" />
-          Comments
-        </h3>
-        
-        {/* Add Comment */}
-        <div className="space-y-2">
-          <Textarea
-            placeholder="Add a comment..."
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            className="min-h-[100px]"
-          />
-          <Button onClick={handleAddComment} className="w-full">
-            Add Comment
-          </Button>
-        </div>
-
-        {/* Comments List */}
-        <div className="space-y-4">
-          {comments?.map((comment) => (
-            <div key={comment.id} className="bg-card p-4 rounded-lg space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">
-                  {comment.profiles?.full_name}
-                </span>
-                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  {new Date(comment.created_at).toLocaleDateString()}
-                </span>
-              </div>
-              <p className="text-sm text-muted-foreground">{comment.content}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+    </ScrollArea>
   );
 };

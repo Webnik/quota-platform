@@ -89,9 +89,14 @@ export const PriceTrendsChart = ({ quotes }: PriceTrendsChartProps) => {
                 r: 6,
                 stroke: "#fff",
                 strokeWidth: 1,
-                fill: (props: any) => {
-                  const status = props.payload.status;
-                  return getDotFill(status);
+                fill: "#8884d8",
+                onMouseOver: (props: any) => {
+                  const dot = props.target;
+                  dot.setAttribute('fill', getDotFill(props.payload.status));
+                },
+                onMouseOut: (props: any) => {
+                  const dot = props.target;
+                  dot.setAttribute('fill', '#8884d8');
                 }
               }}
             />

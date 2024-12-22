@@ -215,6 +215,8 @@ export type Database = {
           event_type: string
           id: string
           project_id: string | null
+          status_from: string | null
+          status_to: string | null
         }
         Insert: {
           created_at?: string | null
@@ -223,6 +225,8 @@ export type Database = {
           event_type: string
           id?: string
           project_id?: string | null
+          status_from?: string | null
+          status_to?: string | null
         }
         Update: {
           created_at?: string | null
@@ -231,6 +235,8 @@ export type Database = {
           event_type?: string
           id?: string
           project_id?: string | null
+          status_from?: string | null
+          status_to?: string | null
         }
         Relationships: [
           {

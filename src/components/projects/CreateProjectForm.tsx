@@ -30,13 +30,13 @@ const CreateProjectForm = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No user found");
 
-      // Create project
+      // Create project with formatted date
       const { data: project, error: projectError } = await supabase
         .from("projects")
         .insert({
           name: values.name,
           description: values.description,
-          due_date: values.due_date,
+          due_date: values.due_date.toISOString(), // Convert Date to ISO string
           consultant_id: user.id,
         })
         .select()
@@ -46,15 +46,18 @@ const CreateProjectForm = () => {
 
       // Upload files if any
       if (values.files && values.files.length > 0) {
+        const filesData = values.files.map(file => ({
+          name: file.name,
+          url: file.url,
+          size: file.size,
+          type: file.type,
+          project_id: project.id,
+          uploaded_by: user.id,
+        }));
+
         const { error: filesError } = await supabase
           .from("files")
-          .insert(
-            values.files.map(file => ({
-              ...file,
-              project_id: project.id,
-              uploaded_by: user.id,
-            }))
-          );
+          .insert(filesData);
 
         if (filesError) throw filesError;
       }

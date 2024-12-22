@@ -1,14 +1,34 @@
-import { ProjectFileUpload } from "@/components/projects/ProjectFileUpload";
+import { useCallback } from "react";
+import { FileUploader } from "@/components/projects/ProjectFileUpload";
+import { UseFormReturn } from "react-hook-form";
+import { QuoteFormValues } from "../schemas/quote-form-schema";
+import { FormField, FormItem, FormLabel } from "@/components/ui/form";
 
 interface QuoteFilesProps {
-  onFileSelect: (file: File | null) => void;
+  form: UseFormReturn<QuoteFormValues>;
 }
 
-export const QuoteFiles = ({ onFileSelect }: QuoteFilesProps) => {
+const QuoteFiles = ({ form }: QuoteFilesProps) => {
+  const onFilesUploaded = useCallback((files: Array<{ name: string; url: string; size: number; type: string }>) => {
+    form.setValue('files', files);
+  }, [form]);
+
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-medium">Supporting Documents</h3>
-      <ProjectFileUpload onFileSelect={onFileSelect} />
-    </div>
+    <FormField
+      control={form.control}
+      name="files"
+      render={() => (
+        <FormItem>
+          <FormLabel>Quote Files</FormLabel>
+          <FileUploader
+            onFilesUploaded={onFilesUploaded}
+            maxFiles={5}
+            maxSize={5 * 1024 * 1024} // 5MB
+          />
+        </FormItem>
+      )}
+    />
   );
 };
+
+export default QuoteFiles;

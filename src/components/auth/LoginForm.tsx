@@ -140,11 +140,19 @@ const LoginForm = () => {
           view="sign_in"
           showLinks={true}
           redirectTo={`${window.location.origin}/dashboard`}
-          onError={(error) => {
-            setAuthError(error.message);
-            toast.error("Authentication Error", {
-              description: error.message
-            });
+          localization={{
+            variables: {
+              sign_in: {
+                email_input_placeholder: "Your email address",
+                password_input_placeholder: "Your password",
+                email_label: "Email",
+                password_label: "Password",
+                button_label: "Sign in",
+                loading_button_label: "Signing in ...",
+                social_provider_text: "Sign in with {{provider}}",
+                link_text: "Already have an account? Sign in",
+              },
+            },
           }}
         />
       </motion.div>

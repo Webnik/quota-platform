@@ -7,6 +7,7 @@ import ProjectDetails from "@/pages/ProjectDetails";
 import QuoteSubmission from "@/pages/QuoteSubmission";
 import Messages from "@/pages/Messages";
 import NotFound from "@/pages/NotFound";
+import Populate from "@/pages/Populate";
 
 export const AppRoutes = () => {
   return (
@@ -57,6 +58,14 @@ export const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Messages />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/populate"
+        element={
+          <ProtectedRoute>
+            <Populate />
           </ProtectedRoute>
         }
       />

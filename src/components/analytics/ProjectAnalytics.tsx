@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Project } from "@/types/project";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 
 interface ProjectAnalyticsProps {
   projects: Project[];
@@ -11,6 +11,14 @@ export const ProjectAnalytics = ({ projects }: ProjectAnalyticsProps) => {
   const totalProjects = projects.length;
   const completedProjects = projects.filter(p => p.status === 'closed').length;
   const successRate = totalProjects > 0 ? (completedProjects / totalProjects) * 100 : 0;
+
+  // Calculate timeline metrics
+  const delayedProjects = projects.filter(project => {
+    const dueDate = new Date(project.due_date);
+    return dueDate < new Date() && project.status !== 'closed';
+  }).length;
+
+  const delayRate = totalProjects > 0 ? (delayedProjects / totalProjects) * 100 : 0;
 
   // Prepare data for status chart
   const statusData = projects.reduce((acc, project) => {
@@ -24,11 +32,18 @@ export const ProjectAnalytics = ({ projects }: ProjectAnalyticsProps) => {
     count,
   }));
 
+  // Prepare timeline data
+  const timelineData = projects.map(project => ({
+    name: project.name,
+    dueDate: new Date(project.due_date).getTime(),
+    status: project.status,
+  })).sort((a, b) => a.dueDate - b.dueDate);
+
   return (
     <div className="space-y-6">
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Project Success Metrics</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <p className="text-sm text-muted-foreground">Total Projects</p>
             <p className="text-2xl font-bold">{totalProjects}</p>
@@ -40,6 +55,10 @@ export const ProjectAnalytics = ({ projects }: ProjectAnalyticsProps) => {
           <div>
             <p className="text-sm text-muted-foreground">Success Rate</p>
             <p className="text-2xl font-bold">{successRate.toFixed(1)}%</p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Delay Rate</p>
+            <p className="text-2xl font-bold">{delayRate.toFixed(1)}%</p>
           </div>
         </div>
       </Card>
@@ -55,6 +74,32 @@ export const ProjectAnalytics = ({ projects }: ProjectAnalyticsProps) => {
               <Tooltip />
               <Bar dataKey="count" fill="#8884d8" />
             </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </Card>
+
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Project Timeline Analysis</h3>
+        <div className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={timelineData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="name" 
+                angle={-45}
+                textAnchor="end"
+                height={80}
+              />
+              <YAxis />
+              <Tooltip />
+              <Line 
+                type="monotone" 
+                dataKey="dueDate" 
+                stroke="#8884d8"
+                name="Due Date"
+                tickFormatter={(value) => new Date(value).toLocaleDateString()}
+              />
+            </LineChart>
           </ResponsiveContainer>
         </div>
       </Card>

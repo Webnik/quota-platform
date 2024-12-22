@@ -1,15 +1,15 @@
-import ProjectSuccessMetrics from "./metrics/ProjectSuccessMetrics";
 import ProjectStatusChart from "./charts/ProjectStatusChart";
 import ProjectTimelineChart from "./charts/ProjectTimelineChart";
+import CostBreakdownChart from "./charts/CostBreakdownChart";
 
 const ProjectAnalytics = () => {
   return (
     <div className="space-y-8">
-      <ProjectSuccessMetrics />
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <ProjectStatusChart />
-        <ProjectTimelineChart />
+        <CostBreakdownChart />
       </div>
+      <ProjectTimelineChart />
     </div>
   );
 };

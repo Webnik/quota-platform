@@ -41,6 +41,7 @@ export const ConsultantDashboard = ({ projects = [], isLoading }: ConsultantDash
             company_name
           ),
           trade:trade_id (*),
+          project:project_id (*),
           files (*)
         `)
         .in("project_id", projectIds);

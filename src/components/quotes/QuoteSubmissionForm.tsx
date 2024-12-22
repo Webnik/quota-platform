@@ -1,29 +1,14 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { ProjectFileUpload } from "@/components/projects/ProjectFileUpload";
+import { Form } from "@/components/ui/form";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
-
-const quoteFormSchema = z.object({
-  amount: z.string().min(1, "Amount is required"),
-  notes: z.string().optional(),
-});
-
-type QuoteFormValues = z.infer<typeof quoteFormSchema>;
+import { QuoteDetails } from "./form/QuoteDetails";
+import { QuoteFiles } from "./form/QuoteFiles";
+import { quoteFormSchema, QuoteFormValues } from "./schemas/quote-form-schema";
 
 interface QuoteSubmissionFormProps {
   projectId: string;
@@ -112,47 +97,8 @@ export function QuoteSubmissionForm({ projectId, tradeId }: QuoteSubmissionFormP
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="amount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Quote Amount ($)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder="Enter quote amount"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Notes</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Add any additional notes or comments"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Supporting Documents</h3>
-          <ProjectFileUpload onFileSelect={handleFileSelect} />
-        </div>
-
+        <QuoteDetails form={form} />
+        <QuoteFiles onFileSelect={handleFileSelect} />
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Submitting..." : "Submit Quote"}
         </Button>

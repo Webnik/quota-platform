@@ -42,6 +42,55 @@ export type Database = {
           },
         ]
       }
+      file_permissions: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          file_id: string | null
+          id: string
+          permission_level: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          file_id?: string | null
+          id?: string
+          permission_level: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          file_id?: string | null
+          id?: string
+          permission_level?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_permissions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "file_permissions_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "file_permissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       files: {
         Row: {
           created_at: string | null

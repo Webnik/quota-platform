@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowDown, Eye, SortAsc, SortDesc, Search } from "lucide-react";
+import { ArrowDown, Eye, SortAsc, SortDesc, Search, UserPlus } from "lucide-react";
 import { useState, useMemo } from "react";
 import { FilePreview } from "../files/FilePreview";
+import { FilePermissions } from "../files/FilePermissions";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -27,6 +28,7 @@ interface ProjectFilesProps {
 
 export const ProjectFiles = ({ files, isLoading = false }: ProjectFilesProps) => {
   const [previewFile, setPreviewFile] = useState<ProjectFile | null>(null);
+  const [permissionsFile, setPermissionsFile] = useState<ProjectFile | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "size" | "type">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -150,6 +152,13 @@ export const ProjectFiles = ({ files, isLoading = false }: ProjectFilesProps) =>
               >
                 <Eye className="h-4 w-4" />
               </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setPermissionsFile(file)}
+              >
+                <UserPlus className="h-4 w-4" />
+              </Button>
               <Button size="icon" variant="ghost" asChild>
                 <a href={file.url} download>
                   <ArrowDown className="h-4 w-4" />
@@ -165,6 +174,14 @@ export const ProjectFiles = ({ files, isLoading = false }: ProjectFilesProps) =>
         isOpen={!!previewFile}
         onClose={() => setPreviewFile(null)}
       />
+
+      {permissionsFile && (
+        <FilePermissions
+          fileId={permissionsFile.id}
+          isOpen={!!permissionsFile}
+          onClose={() => setPermissionsFile(null)}
+        />
+      )}
     </div>
   );
 };

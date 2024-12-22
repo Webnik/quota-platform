@@ -7,6 +7,8 @@ import { ConsultantStats } from "./consultant/ConsultantStats";
 import { ProjectFilters } from "./consultant/ProjectFilters";
 import { ProjectList } from "./consultant/ProjectList";
 import { ProjectAnalytics } from "../analytics/ProjectAnalytics";
+import { CustomReportBuilder } from "./CustomReportBuilder";
+import { DashboardCustomizer } from "./DashboardCustomizer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ConsultantDashboardProps {
@@ -84,6 +86,8 @@ export const ConsultantDashboard = ({ projects = [], isLoading }: ConsultantDash
         <TabsList>
           <TabsTrigger value="projects">Projects</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="reports">Custom Reports</TabsTrigger>
+          <TabsTrigger value="customize">Customize</TabsTrigger>
         </TabsList>
 
         <TabsContent value="projects" className="space-y-4">
@@ -103,6 +107,14 @@ export const ConsultantDashboard = ({ projects = [], isLoading }: ConsultantDash
 
         <TabsContent value="analytics">
           <ProjectAnalytics projects={projects} />
+        </TabsContent>
+
+        <TabsContent value="reports">
+          <CustomReportBuilder />
+        </TabsContent>
+
+        <TabsContent value="customize">
+          <DashboardCustomizer />
         </TabsContent>
       </Tabs>
     </div>

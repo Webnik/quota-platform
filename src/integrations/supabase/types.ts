@@ -42,6 +42,85 @@ export type Database = {
           },
         ]
       }
+      custom_reports: {
+        Row: {
+          config: Json
+          created_at: string | null
+          description: string | null
+          id: string
+          last_run: string | null
+          name: string
+          schedule: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          config: Json
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          last_run?: string | null
+          name: string
+          schedule?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          last_run?: string | null
+          name?: string
+          schedule?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_reports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dashboard_preferences: {
+        Row: {
+          created_at: string | null
+          id: string
+          layout: Json
+          updated_at: string | null
+          user_id: string
+          widgets: Json
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          layout?: Json
+          updated_at?: string | null
+          user_id: string
+          widgets?: Json
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          layout?: Json
+          updated_at?: string | null
+          user_id?: string
+          widgets?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dashboard_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       file_permissions: {
         Row: {
           created_at: string | null

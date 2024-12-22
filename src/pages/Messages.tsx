@@ -20,8 +20,7 @@ const Messages = () => {
           *,
           participants:message_thread_participants(
             user:profiles(
-              full_name,
-              avatar_url
+              full_name
             )
           )
         `)

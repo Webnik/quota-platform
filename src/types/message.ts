@@ -14,7 +14,6 @@ export interface MessageThread {
   participants: {
     user: {
       full_name: string;
-      avatar_url?: string;
     };
   }[];
   last_message?: string;

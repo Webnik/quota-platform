@@ -14,6 +14,7 @@ import QuoteSubmission from "./pages/QuoteSubmission";
 import Messages from "./pages/Messages";
 import { PasswordReset } from "./components/auth/PasswordReset";
 import { UpdatePassword } from "./components/auth/UpdatePassword";
+import ProfileManagement from "./components/profile/ProfileManagement";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +66,11 @@ const App = () => (
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <ProfileManagement />
               </ProtectedRoute>
             } />
             <Route path="/projects/new" element={

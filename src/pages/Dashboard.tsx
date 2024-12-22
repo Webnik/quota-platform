@@ -35,11 +35,14 @@ const Dashboard = () => {
         
         if (profileError) {
           console.error('Profile error:', profileError);
-          throw profileError;
+          toast.error('Failed to load profile');
+          setIsLoading(false);
+          return;
         }
         
         if (!profileData) {
           console.error('No profile found');
+          setIsLoading(false);
           return;
         }
 
@@ -47,9 +50,9 @@ const Dashboard = () => {
 
         // Fetch data based on user role
         if (profileData.role === 'consultant') {
-          fetchConsultantData(user.id);
+          await fetchConsultantData(user.id);
         } else if (profileData.role === 'contractor') {
-          fetchContractorData(user.id);
+          await fetchContractorData(user.id);
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -67,7 +70,11 @@ const Dashboard = () => {
           .select('*')
           .eq('consultant_id', userId);
         
-        if (projectsError) throw projectsError;
+        if (projectsError) {
+          console.error('Projects error:', projectsError);
+          toast.error('Failed to load projects');
+          return;
+        }
         setProjects(projectsData || []);
       } catch (error) {
         console.error('Error fetching projects:', error);
@@ -80,7 +87,7 @@ const Dashboard = () => {
     const fetchContractorData = async (userId: string) => {
       try {
         setQuotesLoading(true);
-        const { data: quotesData, error: quotesError } = await supabase
+        const { data, error } = await supabase
           .from('quotes')
           .select(`
             *,
@@ -93,13 +100,14 @@ const Dashboard = () => {
             files (*)
           `)
           .eq('contractor_id', userId);
-        
-        if (quotesError) {
-          console.error('Quotes error:', quotesError);
-          throw quotesError;
+
+        if (error) {
+          console.error('Quotes error:', error);
+          toast.error('Failed to load quotes');
+          return;
         }
-        
-        setQuotes(quotesData || []);
+
+        setQuotes(data || []);
       } catch (error) {
         console.error('Error fetching quotes:', error);
         toast.error('Failed to load quotes');

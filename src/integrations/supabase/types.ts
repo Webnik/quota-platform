@@ -9,7 +9,279 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      contractor_trades: {
+        Row: {
+          contractor_id: string
+          created_at: string | null
+          trade_id: string
+        }
+        Insert: {
+          contractor_id: string
+          created_at?: string | null
+          trade_id: string
+        }
+        Update: {
+          contractor_id?: string
+          created_at?: string | null
+          trade_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_trades_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_trades_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      files: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          project_id: string | null
+          quote_id: string | null
+          size: number
+          type: string
+          uploaded_by: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          project_id?: string | null
+          quote_id?: string | null
+          size: number
+          type: string
+          uploaded_by?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          project_id?: string | null
+          quote_id?: string | null
+          size?: number
+          type?: string
+          uploaded_by?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "files_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "files_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "files_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          company_name: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          consultant_id: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string
+          id: string
+          name: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          consultant_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date: string
+          id?: string
+          name: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          consultant_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string
+          id?: string
+          name?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_consultant_id_fkey"
+            columns: ["consultant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotes: {
+        Row: {
+          amount: number
+          contractor_id: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          project_id: string | null
+          status: string | null
+          trade_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          contractor_id?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          project_id?: string | null
+          status?: string | null
+          trade_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          contractor_id?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          project_id?: string | null
+          status?: string | null
+          trade_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trades: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

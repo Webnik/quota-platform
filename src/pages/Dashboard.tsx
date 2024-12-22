@@ -22,22 +22,25 @@ const Dashboard = () => {
     const fetchProfile = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profileData, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-          
-          if (error) throw error;
-          setProfile(profileData);
+        if (!user) {
+          setIsLoading(false);
+          return;
+        }
 
-          // Fetch data based on user role
-          if (profileData.role === 'consultant') {
-            fetchConsultantData(user.id);
-          } else if (profileData.role === 'contractor') {
-            fetchContractorData(user.id);
-          }
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        if (profileError) throw profileError;
+        setProfile(profileData);
+
+        // Fetch data based on user role
+        if (profileData.role === 'consultant') {
+          fetchConsultantData(user.id);
+        } else if (profileData.role === 'contractor') {
+          fetchContractorData(user.id);
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -50,12 +53,12 @@ const Dashboard = () => {
     const fetchConsultantData = async (userId: string) => {
       try {
         setProjectsLoading(true);
-        const { data: projectsData, error } = await supabase
+        const { data: projectsData, error: projectsError } = await supabase
           .from('projects')
           .select('*')
           .eq('consultant_id', userId);
         
-        if (error) throw error;
+        if (projectsError) throw projectsError;
         setProjects(projectsData || []);
       } catch (error) {
         console.error('Error fetching projects:', error);
@@ -68,7 +71,7 @@ const Dashboard = () => {
     const fetchContractorData = async (userId: string) => {
       try {
         setQuotesLoading(true);
-        const { data: quotesData, error } = await supabase
+        const { data: quotesData, error: quotesError } = await supabase
           .from('quotes')
           .select(`
             *,
@@ -82,7 +85,7 @@ const Dashboard = () => {
           `)
           .eq('contractor_id', userId);
         
-        if (error) throw error;
+        if (quotesError) throw quotesError;
         setQuotes(quotesData || []);
       } catch (error) {
         console.error('Error fetching quotes:', error);

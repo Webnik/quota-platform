@@ -3,11 +3,13 @@ import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import LoginHeader from "./LoginHeader";
 import LoginAlert from "./LoginAlert";
 
 const LoginForm = () => {
   const [authError, setAuthError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -15,11 +17,19 @@ const LoginForm = () => {
         toast.success("Successfully logged in", {
           description: "Welcome back!"
         });
+        navigate("/dashboard");
+      }
+    });
+
+    // Check if user is already logged in
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        navigate("/dashboard");
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   return (
     <div className="w-full max-w-md space-y-8">

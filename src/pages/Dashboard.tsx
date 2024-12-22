@@ -33,7 +33,16 @@ const Dashboard = () => {
           .eq('id', user.id)
           .single();
         
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error('Profile error:', profileError);
+          throw profileError;
+        }
+        
+        if (!profileData) {
+          console.error('No profile found');
+          return;
+        }
+
         setProfile(profileData);
 
         // Fetch data based on user role
@@ -85,7 +94,11 @@ const Dashboard = () => {
           `)
           .eq('contractor_id', userId);
         
-        if (quotesError) throw quotesError;
+        if (quotesError) {
+          console.error('Quotes error:', quotesError);
+          throw quotesError;
+        }
+        
         setQuotes(quotesData || []);
       } catch (error) {
         console.error('Error fetching quotes:', error);

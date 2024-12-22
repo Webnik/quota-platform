@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -44,6 +46,14 @@ const Login = () => {
             <h1 className="text-4xl font-bold mb-2">Welcome to Quota</h1>
             <p className="text-muted-foreground text-sm uppercase tracking-wider">BY CANOPY</p>
           </div>
+
+          <Alert variant="default" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Sign in to manage your construction projects and quotes efficiently.
+            </AlertDescription>
+          </Alert>
+
           <Auth
             supabaseClient={supabase}
             appearance={{
@@ -63,6 +73,7 @@ const Login = () => {
                 button: 'bg-primary hover:bg-primary/90 text-primary-foreground',
                 input: 'bg-background/50 border-input text-foreground',
                 label: 'text-foreground',
+                message: 'text-muted-foreground text-sm',
               },
             }}
             theme="dark"
@@ -73,9 +84,10 @@ const Login = () => {
       
       {/* Right side - Image */}
       <div 
-        className="hidden md:block md:w-1/2 bg-cover bg-center"
+        className="hidden md:block md:w-1/2 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: "url('/lovable-uploads/11e9ef38-ad3f-439c-a205-3ddf1ee96f5e.png')"
+          backgroundImage: "url('/lovable-uploads/11e9ef38-ad3f-439c-a205-3ddf1ee96f5e.png')",
+          backgroundSize: 'cover'
         }}
       />
     </div>

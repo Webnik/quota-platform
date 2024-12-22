@@ -4,9 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-type CleanupParams = {
+interface CleanupParams {
   leave_some: boolean;
-};
+}
 
 export default function Populate() {
   const [isPopulating, setIsPopulating] = useState(false);
@@ -31,7 +31,7 @@ export default function Populate() {
       setIsCleaning(true);
       const { error } = await supabase.rpc('cleanup_sample_data', {
         leave_some: leaveSome
-      } as CleanupParams);
+      });
       if (error) throw error;
       toast.success(leaveSome ? "Cleaned up most sample data!" : "Cleaned up all sample data!");
     } catch (error) {

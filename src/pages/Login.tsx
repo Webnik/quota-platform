@@ -53,11 +53,11 @@ const Login = () => {
       <div 
         className="hidden md:block md:w-1/2 bg-cover bg-center bg-no-repeat relative"
         style={{
-          backgroundImage: "url('/lovable-uploads/11e9ef38-ad3f-439c-a205-3ddf1ee96f5e.png')",
+          backgroundImage: "url('https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d')",
           backgroundSize: 'cover'
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-background/40 backdrop-blur-sm" />
+        <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-background/40 backdrop-blur-sm" />
       </div>
     </div>
   );

@@ -8,7 +8,7 @@ const LoginForm = () => {
   return (
     <div className="w-full max-w-md space-y-10">
       <div className="text-center space-y-4">
-        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+        <h1 className="text-4xl md:text-5xl font-bold text-foreground">
           Welcome to Quota
         </h1>
         <p className="text-muted-foreground text-sm uppercase tracking-widest font-medium">
@@ -16,8 +16,8 @@ const LoginForm = () => {
         </p>
       </div>
 
-      <Alert variant="default" className="border-primary/20 bg-primary/5">
-        <AlertCircle className="h-4 w-4 text-primary" />
+      <Alert variant="default" className="border-accent/20 bg-accent/5">
+        <AlertCircle className="h-4 w-4 text-accent" />
         <AlertDescription className="text-foreground/80">
           Sign in to manage your construction projects and quotes efficiently.
         </AlertDescription>
@@ -30,8 +30,8 @@ const LoginForm = () => {
           variables: {
             default: {
               colors: {
-                brand: '#9b87f5',
-                brandAccent: '#7E69AB',
+                brand: '#8E9196',
+                brandAccent: '#403E43',
                 inputBackground: 'transparent',
                 inputText: 'inherit',
               },
@@ -40,7 +40,7 @@ const LoginForm = () => {
           className: {
             container: 'w-full',
             button: 'bg-primary hover:bg-primary/90 text-primary-foreground',
-            input: 'bg-background/50 border-primary/20 text-foreground focus:border-primary',
+            input: 'bg-background/50 border-accent/20 text-foreground focus:border-accent',
             label: 'text-foreground/80',
             message: 'text-muted-foreground text-sm',
             anchor: 'text-primary hover:text-primary/80',

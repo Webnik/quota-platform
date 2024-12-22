@@ -1,15 +1,34 @@
-import { ProjectFileUpload } from "../ProjectFileUpload";
-import { FormLabel } from "@/components/ui/form";
+import { useCallback } from "react";
+import { FileUploader } from "../ProjectFileUpload";
+import { UseFormReturn } from "react-hook-form";
+import { ProjectFormValues } from "../schemas/project-form-schema";
+import { FormField, FormItem, FormLabel } from "@/components/ui/form";
 
 interface ProjectFilesProps {
-  onFileSelect: (file: File | null) => void;
+  form: UseFormReturn<ProjectFormValues>;
 }
 
-export function ProjectFiles({ onFileSelect }: ProjectFilesProps) {
+const ProjectFiles = ({ form }: ProjectFilesProps) => {
+  const onFilesUploaded = useCallback((files: Array<{ name: string; url: string; size: number; type: string }>) => {
+    form.setValue('files', files);
+  }, [form]);
+
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-medium">Project Files</h3>
-      <ProjectFileUpload onFileSelect={onFileSelect} />
-    </div>
+    <FormField
+      control={form.control}
+      name="files"
+      render={() => (
+        <FormItem>
+          <FormLabel>Project Files</FormLabel>
+          <FileUploader
+            onFilesUploaded={onFilesUploaded}
+            maxFiles={5}
+            maxSize={5 * 1024 * 1024} // 5MB
+          />
+        </FormItem>
+      )}
+    />
   );
-}
+};
+
+export default ProjectFiles;

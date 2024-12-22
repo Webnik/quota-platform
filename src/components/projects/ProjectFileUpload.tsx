@@ -1,46 +1,130 @@
-import { FormLabel } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useDropzone } from "react-dropzone";
+import { Upload, X } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 
-export const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
-
-interface ProjectFileUploadProps {
-  onFileSelect: (file: File | null) => void;
+interface FileUploaderProps {
+  onFilesUploaded: (files: Array<{ name: string; url: string; size: number; type: string }>) => void;
+  maxFiles?: number;
+  maxSize?: number;
 }
 
-export const ProjectFileUpload = ({ onFileSelect }: ProjectFileUploadProps) => {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+export const FileUploader = ({ onFilesUploaded, maxFiles = 5, maxSize = 5 * 1024 * 1024 }: FileUploaderProps) => {
+  const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; url: string; size: number; type: string }>>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error("File size must be less than 20MB");
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    if (uploadedFiles.length + acceptedFiles.length > maxFiles) {
+      toast.error(`Maximum ${maxFiles} files allowed`);
       return;
     }
 
-    setSelectedFile(file);
-    onFileSelect(file);
-  };
+    setIsUploading(true);
+    const newFiles: Array<{ name: string; url: string; size: number; type: string }> = [];
+
+    try {
+      for (const file of acceptedFiles) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError, data } = await supabase.storage
+          .from('project-files')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('project-files')
+          .getPublicUrl(filePath);
+
+        newFiles.push({
+          name: file.name,
+          url: publicUrl,
+          size: file.size,
+          type: file.type,
+        });
+      }
+
+      const updatedFiles = [...uploadedFiles, ...newFiles];
+      setUploadedFiles(updatedFiles);
+      onFilesUploaded(updatedFiles);
+      
+      toast.success("Files uploaded successfully");
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      toast.error("Failed to upload files", {
+        description: "Please try again later"
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  }, [maxFiles, onFilesUploaded, uploadedFiles]);
+
+  const removeFile = useCallback((fileToRemove: { name: string; url: string }) => {
+    const updatedFiles = uploadedFiles.filter(
+      file => file.name !== fileToRemove.name || file.url !== fileToRemove.url
+    );
+    setUploadedFiles(updatedFiles);
+    onFilesUploaded(updatedFiles);
+  }, [onFilesUploaded, uploadedFiles]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    maxSize,
+    disabled: isUploading,
+  });
 
   return (
-    <div className="space-y-2">
-      <FormLabel>Project Files</FormLabel>
-      <div className="flex items-center gap-4">
-        <Input
-          type="file"
-          onChange={handleFileChange}
-          className="flex-1"
-          accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
-        />
-        {selectedFile && (
-          <span className="text-sm text-muted-foreground">
-            {selectedFile.name}
-          </span>
-        )}
+    <div className="space-y-4">
+      <div
+        {...getRootProps()}
+        className={`
+          border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
+          transition-colors duration-200
+          ${isDragActive ? 'border-primary bg-primary/5' : 'border-border'}
+          ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}
+        `}
+      >
+        <input {...getInputProps()} />
+        <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
+        <p className="mt-2 text-sm text-muted-foreground">
+          {isDragActive ? (
+            "Drop the files here..."
+          ) : (
+            <>
+              Drag & drop files here, or click to select files
+              <br />
+              <span className="text-xs">
+                Maximum {maxFiles} files, up to {Math.round(maxSize / 1024 / 1024)}MB each
+              </span>
+            </>
+          )}
+        </p>
       </div>
+
+      {uploadedFiles.length > 0 && (
+        <ul className="space-y-2">
+          {uploadedFiles.map((file, index) => (
+            <li
+              key={index}
+              className="flex items-center justify-between p-2 bg-accent/5 rounded-lg"
+            >
+              <span className="text-sm truncate flex-1">{file.name}</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => removeFile(file)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };

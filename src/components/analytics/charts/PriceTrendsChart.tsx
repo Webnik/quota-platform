@@ -7,6 +7,14 @@ interface PriceTrendsChartProps {
   quotes: QuoteResponse[];
 }
 
+interface TrendDataPoint {
+  date: string;
+  amount: number;
+  projectName: string;
+  trade: string;
+  status: string;
+}
+
 export const PriceTrendsChart = ({ quotes }: PriceTrendsChartProps) => {
   const trendData = useMemo(() => {
     const sortedQuotes = [...quotes].sort((a, b) => 
@@ -27,8 +35,8 @@ export const PriceTrendsChart = ({ quotes }: PriceTrendsChartProps) => {
     return sum / trendData.length;
   }, [trendData]);
 
-  const getDotFill = (status: string) => {
-    switch(status) {
+  const getDotFill = (entry: TrendDataPoint) => {
+    switch(entry.status) {
       case 'accepted': return "#22c55e";
       case 'rejected': return "#ef4444";
       default: return "#8884d8";
@@ -71,9 +79,12 @@ export const PriceTrendsChart = ({ quotes }: PriceTrendsChartProps) => {
               dataKey="amount" 
               stroke="#8884d8" 
               name="Quote Amount"
-              dot={{ 
-                fill: (props) => getDotFill(props.payload.status)
-              }}
+              dot={(props) => ({
+                fill: getDotFill(props.payload),
+                r: 4,
+                strokeWidth: 1,
+                stroke: "#fff"
+              })}
             />
           </LineChart>
         </ResponsiveContainer>

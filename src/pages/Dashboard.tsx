@@ -32,14 +32,41 @@ const Dashboard = () => {
           
           if (error) throw error;
           setProfile(profileData);
+
+          // Fetch data based on user role
+          if (profileData.role === 'consultant') {
+            fetchConsultantData(user.id);
+          } else if (profileData.role === 'contractor') {
+            fetchContractorData(user.id);
+          }
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
         toast.error('Failed to load profile');
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    const fetchQuotes = async () => {
+    const fetchConsultantData = async (userId: string) => {
+      try {
+        setProjectsLoading(true);
+        const { data: projectsData, error } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('consultant_id', userId);
+        
+        if (error) throw error;
+        setProjects(projectsData || []);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+        toast.error('Failed to load projects');
+      } finally {
+        setProjectsLoading(false);
+      }
+    };
+
+    const fetchContractorData = async (userId: string) => {
       try {
         setQuotesLoading(true);
         const { data: quotesData, error } = await supabase
@@ -53,7 +80,8 @@ const Dashboard = () => {
             ),
             project:project_id (*),
             files (*)
-          `);
+          `)
+          .eq('contractor_id', userId);
         
         if (error) throw error;
         setQuotes(quotesData || []);
@@ -65,27 +93,7 @@ const Dashboard = () => {
       }
     };
 
-    const fetchProjects = async () => {
-      try {
-        setProjectsLoading(true);
-        const { data: projectsData, error } = await supabase
-          .from('projects')
-          .select('*');
-        
-        if (error) throw error;
-        setProjects(projectsData || []);
-      } catch (error) {
-        console.error('Error fetching projects:', error);
-        toast.error('Failed to load projects');
-      } finally {
-        setProjectsLoading(false);
-      }
-    };
-
     fetchProfile();
-    fetchQuotes();
-    fetchProjects();
-    setIsLoading(false);
   }, []);
 
   if (isLoading) {
@@ -102,16 +110,30 @@ const Dashboard = () => {
     );
   }
 
+  if (!profile) {
+    return (
+      <div className="container py-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600">Profile Not Found</h1>
+          <p className="mt-2 text-gray-600">Please complete your profile setup.</p>
+          <Link to="/complete-profile">
+            <Button className="mt-4">Complete Profile</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container py-8 space-y-8">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground mt-1">
-            Welcome back, {profile?.full_name}
+            Welcome back, {profile.full_name}
           </p>
         </div>
-        {profile?.role === 'consultant' && (
+        {profile.role === 'consultant' && (
           <Link to="/projects/new">
             <Button>
               <Plus className="mr-2 h-4 w-4" /> New Project
@@ -120,12 +142,12 @@ const Dashboard = () => {
         )}
       </div>
 
-      {profile?.role === 'consultant' ? (
+      {profile.role === 'consultant' ? (
         <ConsultantDashboard 
           projects={projects} 
           isLoading={projectsLoading} 
         />
-      ) : profile?.role === 'contractor' ? (
+      ) : profile.role === 'contractor' ? (
         <ContractorDashboard 
           quotes={quotes} 
           projects={projects}

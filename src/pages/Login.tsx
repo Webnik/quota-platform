@@ -36,6 +36,12 @@ const Login = () => {
             return;
           }
 
+          if (!profile.role) {
+            // If no role is set, redirect to profile completion
+            navigate("/complete-profile");
+            return;
+          }
+
           toast.success("Login Successful", {
             description: `Welcome back to Quota!`
           });
@@ -65,6 +71,12 @@ const Login = () => {
           return;
         }
 
+        if (!profile.role) {
+          // If no role is set, redirect to profile completion
+          navigate("/complete-profile");
+          return;
+        }
+
         toast.success("Login Successful", {
           description: "Welcome back to Quota!"
         });
@@ -81,12 +93,10 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
-      {/* Left side - Login form */}
       <div className="w-full md:w-1/2 bg-background flex flex-col justify-center items-center p-8 md:p-12 lg:p-16">
         <LoginForm />
       </div>
       
-      {/* Right side - Image */}
       <div 
         className="hidden md:block md:w-1/2 bg-cover bg-center bg-no-repeat relative"
         style={{

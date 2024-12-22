@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,12 +7,43 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const ProfileForm = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [fullName, setFullName] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [role, setRole] = useState<string>("");
+  const [currentProfile, setCurrentProfile] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile) {
+          setCurrentProfile(profile);
+          setFullName(profile.full_name || "");
+          setCompanyName(profile.company_name || "");
+          setRole(profile.role || "");
+        }
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +64,7 @@ const ProfileForm = () => {
         .update({
           full_name: fullName,
           company_name: companyName,
+          role: role || currentProfile?.role || 'contractor',
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -96,6 +128,29 @@ const ProfileForm = () => {
             required
             className="bg-background/50 border-accent/20 text-foreground focus:border-accent"
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="role">Role</Label>
+          <Select
+            value={role}
+            onValueChange={setRole}
+            disabled={!!currentProfile?.role}
+          >
+            <SelectTrigger className="w-full bg-background/50 border-accent/20 text-foreground focus:border-accent">
+              <SelectValue placeholder="Select your role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="consultant">Consultant</SelectItem>
+              <SelectItem value="contractor">Contractor</SelectItem>
+              <SelectItem value="project_manager">Project Manager</SelectItem>
+            </SelectContent>
+          </Select>
+          {currentProfile?.role && (
+            <p className="text-sm text-muted-foreground">
+              Role cannot be changed after initial setup
+            </p>
+          )}
         </div>
 
         <Button

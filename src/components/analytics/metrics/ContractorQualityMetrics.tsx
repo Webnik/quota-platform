@@ -15,6 +15,26 @@ interface ContractorRating {
   on_time_completion: number;
 }
 
+interface RatingData {
+  contractor_id: string;
+  rating: number;
+  profiles: {
+    full_name: string;
+    company_name: string;
+  };
+}
+
+interface ProcessedRating {
+  contractor_id: string;
+  profile: {
+    full_name: string;
+    company_name: string;
+  };
+  ratings: number[];
+  total_ratings: number;
+  on_time_completion: number;
+}
+
 export const ContractorQualityMetrics = () => {
   const { data: contractorRatings, isLoading } = useQuery({
     queryKey: ['contractor-quality-metrics'],
@@ -32,8 +52,8 @@ export const ContractorQualityMetrics = () => {
 
       if (error) throw error;
 
-      // Process ratings data
-      const ratingsByContractor = data.reduce((acc, curr) => {
+      // Process ratings data with proper typing
+      const ratingsByContractor = (data as RatingData[]).reduce<Record<string, ProcessedRating>>((acc, curr) => {
         if (!acc[curr.contractor_id]) {
           acc[curr.contractor_id] = {
             contractor_id: curr.contractor_id,

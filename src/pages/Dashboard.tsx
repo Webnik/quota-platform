@@ -10,7 +10,7 @@ import { ReportExportManager } from "@/components/reports/ReportExportManager";
 import { AdvancedSearch } from "@/components/search/AdvancedSearch";
 
 const Dashboard = () => {
-  const { profile } = useProfile();
+  const { profile, isLoading: profileLoading } = useProfile();
   const [quotes, setQuotes] = useState([]);
   const [projects, setProjects] = useState([]);
 
@@ -60,9 +60,13 @@ const Dashboard = () => {
     }
   }, [data]);
 
+  if (profileLoading || !profile) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <DashboardHeader />
+      <DashboardHeader profile={profile} />
       
       <div className="grid gap-6 md:grid-cols-2">
         <AdvancedSearch />
@@ -70,7 +74,7 @@ const Dashboard = () => {
       </div>
 
       {profile?.role === 'consultant' ? (
-        <ConsultantDashboard quotes={quotes} projects={projects} isLoading={isLoading} />
+        <ConsultantDashboard projects={projects} isLoading={isLoading} />
       ) : (
         <ContractorDashboard quotes={quotes} projects={projects} isLoading={isLoading} />
       )}

@@ -17,55 +17,64 @@ export const useProfile = () => {
         setIsLoading(true);
         setError(null);
 
-        // First check if we have an authenticated user
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          throw sessionError;
+        // First get the session
+        let session;
+        try {
+          const { data, error } = await supabase.auth.getSession();
+          if (error) throw error;
+          session = data.session;
+        } catch (error) {
+          console.error("Session error:", error);
+          throw new Error("Failed to get session");
         }
 
-        if (!sessionData.session?.user) {
+        if (!session?.user) {
           setIsLoading(false);
           navigate('/login');
           return;
         }
 
         // Then fetch the profile data
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', sessionData.session.user.id)
-          .single();
-        
-        if (profileError) {
-          console.error('Profile error:', profileError);
+        try {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (profileError) {
+            console.error('Profile error:', profileError);
+            toast({
+              title: "Error fetching profile",
+              description: "Please try refreshing the page",
+              variant: "destructive",
+            });
+            throw profileError;
+          }
+
+          if (!profileData) {
+            console.warn('No profile found for user:', session.user.id);
+            toast({
+              title: "Profile not found",
+              description: "Please complete your profile setup",
+              variant: "destructive",
+            });
+            return;
+          }
+
+          setProfile(profileData);
+        } catch (error) {
+          console.error('Error fetching profile:', error);
+          setError(error as Error);
           toast({
-            title: "Error fetching profile",
-            description: "Please try refreshing the page",
+            title: "Error",
+            description: "Failed to load profile data. Please try again later.",
             variant: "destructive",
           });
-          throw profileError;
         }
-
-        if (!profileData) {
-          console.warn('No profile found for user:', sessionData.session.user.id);
-          toast({
-            title: "Profile not found",
-            description: "Please complete your profile setup",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        setProfile(profileData);
       } catch (error) {
-        console.error('Error fetching profile:', error);
+        console.error('Error in profile fetch:', error);
         setError(error as Error);
-        toast({
-          title: "Error",
-          description: "Failed to load profile data. Please try again later.",
-          variant: "destructive",
-        });
       } finally {
         setIsLoading(false);
       }

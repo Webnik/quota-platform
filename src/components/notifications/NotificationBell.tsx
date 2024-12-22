@@ -25,24 +25,36 @@ export function NotificationBell() {
   const { data: notifications = [], refetch } = useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) throw sessionError;
-      
-      if (!sessionData.session?.user) {
+      let session;
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        session = data.session;
+      } catch (error) {
+        console.error("Session error:", error);
+        throw new Error("Failed to get session");
+      }
+
+      if (!session?.user) {
         throw new Error("No authenticated user");
       }
 
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("*")
-        .order("created_at", { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from("notifications")
+          .select("*")
+          .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching notifications:", error);
+        if (error) {
+          console.error("Error fetching notifications:", error);
+          throw error;
+        }
+
+        return (data as Notification[]) || [];
+      } catch (error) {
+        console.error("Error in notification query:", error);
         throw error;
       }
-
-      return (data as Notification[]) || [];
     },
     retry: 1,
     meta: {

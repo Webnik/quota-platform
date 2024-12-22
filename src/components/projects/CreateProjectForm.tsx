@@ -2,23 +2,15 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Form } from "@/components/ui/form";
 import { ProjectDatePicker } from "./ProjectDatePicker";
-import { ProjectFileUpload } from "./ProjectFileUpload";
-import { ContractorSelection } from "./ContractorSelection";
 import { projectFormSchema, ProjectFormValues } from "./schemas/project-form-schema";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useState } from "react";
+import { ProjectBasicDetails } from "./form/ProjectBasicDetails";
+import { ProjectFiles } from "./form/ProjectFiles";
+import { ProjectContractors } from "./form/ProjectContractors";
 
 export function CreateProjectForm() {
   const navigate = useNavigate();
@@ -69,7 +61,7 @@ export function CreateProjectForm() {
               trade_id: tradeId,
               contractor_id: contractorId,
               status: "pending",
-              amount: 0, // Default amount as it's required
+              amount: 0,
             }))
           );
 
@@ -88,9 +80,7 @@ export function CreateProjectForm() {
 
   const handleContractorSelect = (tradeId: string, contractorId: string) => {
     setSelectedContractors(prev => {
-      // Remove any existing selection for this trade
       const filtered = prev.filter(item => item.tradeId !== tradeId);
-      // Add the new selection
       return [...filtered, { tradeId, contractorId }];
     });
   };
@@ -102,54 +92,13 @@ export function CreateProjectForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Project Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter project name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Enter project description"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
+        <ProjectBasicDetails form={form} />
         <ProjectDatePicker form={form} />
-
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Project Files</h3>
-          <ProjectFileUpload onFileSelect={handleFileSelect} />
-        </div>
-
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Select Contractors</h3>
-          <ContractorSelection onSelect={handleContractorSelect} />
-          {selectedContractors.length > 0 && (
-            <p className="text-sm text-muted-foreground">
-              {selectedContractors.length} contractor{selectedContractors.length === 1 ? "" : "s"} selected
-            </p>
-          )}
-        </div>
-
+        <ProjectFiles onFileSelect={handleFileSelect} />
+        <ProjectContractors
+          selectedContractors={selectedContractors}
+          onContractorSelect={handleContractorSelect}
+        />
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Creating..." : "Create Project"}
         </Button>

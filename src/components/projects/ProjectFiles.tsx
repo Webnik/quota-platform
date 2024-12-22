@@ -1,14 +1,11 @@
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowDown, Eye, SortAsc, SortDesc, Search } from "lucide-react";
 import { useState, useMemo } from "react";
 import { FilePreviewEnhanced } from "../files/FilePreviewEnhanced";
 import { FilePermissions } from "../files/FilePermissions";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileCategories } from "../files/FileCategories";
-import { FileTags } from "../files/FileTags";
 import { BulkFileOperations } from "../files/BulkFileOperations";
+import { FileList } from "../files/FileList";
+import { FileFilters } from "../files/FileFilters";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ProjectFile {
   id: string;
@@ -84,59 +81,24 @@ export const ProjectFiles = ({ files, isLoading = false }: ProjectFilesProps) =>
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Project Files</h2>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}
-          >
-            {sortOrder === "asc" ? (
-              <SortAsc className="h-4 w-4" />
-            ) : (
-              <SortDesc className="h-4 w-4" />
-            )}
-          </Button>
-          <Select value={sortBy} onValueChange={(value: "name" | "size" | "type") => setSortBy(value)}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name">Name</SelectItem>
-              <SelectItem value="size">Size</SelectItem>
-              <SelectItem value="type">Type</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={fileType} onValueChange={setFileType}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="File type" />
-            </SelectTrigger>
-            <SelectContent>
-              {fileTypes.map(type => (
-                <SelectItem key={type} value={type}>
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <h2 className="text-xl font-semibold">Project Files</h2>
+
+      <FileFilters
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        sortBy={sortBy}
+        onSortByChange={setSortBy}
+        sortOrder={sortOrder}
+        onSortOrderChange={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}
+        fileType={fileType}
+        onFileTypeChange={setFileType}
+        fileTypes={fileTypes}
+      />
 
       <FileCategories
         selectedCategory={selectedCategory}
         onCategoryChange={setSelectedCategory}
       />
-
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Search files..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9"
-        />
-      </div>
 
       <BulkFileOperations
         selectedFiles={selectedFiles}
@@ -144,36 +106,10 @@ export const ProjectFiles = ({ files, isLoading = false }: ProjectFilesProps) =>
         files={filteredAndSortedFiles}
       />
 
-      <div className="space-y-2">
-        {filteredAndSortedFiles.map((file) => (
-          <div
-            key={file.id}
-            className="flex items-center justify-between p-4 rounded-lg bg-secondary/50"
-          >
-            <div className="space-y-1">
-              <p className="font-medium">{file.name}</p>
-              <p className="text-sm text-muted-foreground">
-                {(file.size / 1024 / 1024).toFixed(2)} MB
-              </p>
-              <FileTags fileId={file.id} />
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => setPreviewFile(file)}
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
-              <Button size="icon" variant="ghost" asChild>
-                <a href={file.url} download>
-                  <ArrowDown className="h-4 w-4" />
-                </a>
-              </Button>
-            </div>
-          </div>
-        ))}
-      </div>
+      <FileList
+        files={filteredAndSortedFiles}
+        onPreview={setPreviewFile}
+      />
 
       <FilePreviewEnhanced
         file={previewFile}

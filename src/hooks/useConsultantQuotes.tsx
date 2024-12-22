@@ -7,8 +7,10 @@ export const useConsultantQuotes = (projects: Project[]) => {
   const projectIds = projects.map(p => p.id);
 
   return useQuery<QuoteResponse[]>({
-    queryKey: ["consultant-quotes"],
+    queryKey: ["consultant-quotes", projectIds],
     queryFn: async () => {
+      if (projectIds.length === 0) return [];
+      
       const { data, error } = await supabase
         .from("quotes")
         .select(`
@@ -24,9 +26,16 @@ export const useConsultantQuotes = (projects: Project[]) => {
         `)
         .in("project_id", projectIds);
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error("Error fetching quotes:", error);
+        throw error;
+      }
+
+      return data.map(quote => ({
+        ...quote,
+        project: quote.project,
+      }));
     },
-    enabled: projects.length > 0,
+    enabled: projectIds.length > 0,
   });
 };

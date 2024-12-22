@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectHeader } from "@/components/projects/ProjectHeader";
 import ProjectFiles from "@/components/projects/ProjectFiles";
+import { ProjectTimelineView } from "@/components/projects/ProjectTimelineView";
 import { toast } from "sonner";
 
 const ProjectDetails = () => {
@@ -50,10 +51,12 @@ const ProjectDetails = () => {
 
   const totalAmount = quotes?.reduce((sum, quote) => sum + Number(quote.amount), 0) || 0;
 
+  if (!id) return null;
+
   return (
     <div className="container py-8 space-y-8">
       <ProjectHeader
-        id={id as string}
+        id={id}
         isLoading={isLoading}
         name={project?.name || ""}
         status={project?.status || ""}
@@ -62,10 +65,13 @@ const ProjectDetails = () => {
         totalAmount={totalAmount}
       />
       
-      <ProjectFiles
-        isLoading={isLoading}
-        files={project?.files || []}
-      />
+      <div className="grid gap-6 md:grid-cols-2">
+        <ProjectFiles
+          isLoading={isLoading}
+          files={project?.files || []}
+        />
+        <ProjectTimelineView projectId={id} />
+      </div>
     </div>
   );
 };

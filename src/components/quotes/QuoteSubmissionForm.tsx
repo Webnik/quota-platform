@@ -1,24 +1,27 @@
 import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { QuoteDetails } from "./form/QuoteDetails";
-import { QuoteFiles } from "./form/QuoteFiles";
-import { quoteFormSchema, QuoteFormValues } from "./schemas/quote-form-schema";
+import { addTimelineEvent } from "@/utils/timeline";
+import { notifyStakeholders } from "@/utils/notifications";
 
-interface QuoteSubmissionFormProps {
-  projectId: string;
-  tradeId: string;
-}
+const quoteFormSchema = z.object({
+  amount: z.string().min(1, "Amount is required"),
+  notes: z.string().optional(),
+});
 
-export function QuoteSubmissionForm({ projectId, tradeId }: QuoteSubmissionFormProps) {
+type QuoteFormValues = z.infer<typeof quoteFormSchema>;
+
+export const QuoteSubmissionForm = ({ projectId, tradeId }: { projectId: string; tradeId: string }) => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const form = useForm<QuoteFormValues>({
     resolver: zodResolver(quoteFormSchema),
@@ -32,11 +35,9 @@ export function QuoteSubmissionForm({ projectId, tradeId }: QuoteSubmissionFormP
     try {
       setIsSubmitting(true);
 
+      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("You must be logged in to submit a quote");
-        return;
-      }
+      if (!user) throw new Error("No authenticated user");
 
       // Create quote
       const { data: quote, error: quoteError } = await supabase
@@ -47,62 +48,73 @@ export function QuoteSubmissionForm({ projectId, tradeId }: QuoteSubmissionFormP
           contractor_id: user.id,
           amount: parseFloat(values.amount),
           notes: values.notes,
-          status: "pending",
+          status: "submitted",
         })
         .select()
         .single();
 
       if (quoteError) throw quoteError;
 
-      // Upload file if selected
-      if (selectedFile && quote) {
-        const fileExt = selectedFile.name.split('.').pop();
-        const filePath = `${quote.id}-${Math.random()}.${fileExt}`;
+      // Add timeline event
+      await addTimelineEvent({
+        projectId,
+        eventType: "quote",
+        description: `New quote submitted for $${values.amount}`,
+        createdBy: user.id,
+      });
 
-        const { error: uploadError } = await supabase.storage
-          .from('project-files')
-          .upload(filePath, selectedFile);
-
-        if (uploadError) throw uploadError;
-
-        // Create file record
-        const { error: fileError } = await supabase
-          .from("files")
-          .insert({
-            name: selectedFile.name,
-            url: filePath,
-            size: selectedFile.size,
-            type: selectedFile.type,
-            uploaded_by: user.id,
-            quote_id: quote.id,
-          });
-
-        if (fileError) throw fileError;
-      }
+      // Notify project stakeholders
+      await notifyStakeholders(projectId, {
+        title: "New Quote Submitted",
+        message: `A new quote has been submitted for $${values.amount}`,
+      });
 
       toast.success("Quote submitted successfully");
       navigate(`/projects/${projectId}`);
     } catch (error: any) {
-      console.error("Error submitting quote:", error);
-      toast.error(error.message || "Failed to submit quote");
+      toast.error("Failed to submit quote", {
+        description: error.message
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleFileSelect = (file: File | null) => {
-    setSelectedFile(file);
-  };
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <QuoteDetails form={form} />
-        <QuoteFiles onFileSelect={handleFileSelect} />
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="amount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Amount ($)</FormLabel>
+              <FormControl>
+                <Input type="number" step="0.01" placeholder="0.00" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Notes</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Add any additional notes or comments..." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Submitting..." : "Submit Quote"}
         </Button>
       </form>
     </Form>
   );
-}
+};

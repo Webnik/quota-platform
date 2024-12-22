@@ -10,6 +10,8 @@ import { ReportExportManager } from "@/components/reports/ReportExportManager";
 import { AdvancedSearch } from "@/components/search/AdvancedSearch";
 import { NotificationPreferences } from "@/components/notifications/NotificationPreferences";
 import { TwoFactorAuth } from "@/components/auth/TwoFactorAuth";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { toast } from "sonner";
 
 const Dashboard = () => {
@@ -56,7 +58,9 @@ const Dashboard = () => {
         };
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
-        toast.error("Failed to load dashboard data. Please try again.");
+        toast.error("Failed to load dashboard data", {
+          description: "Please try again later",
+        });
         throw error;
       }
     },
@@ -72,36 +76,52 @@ const Dashboard = () => {
   }, [data]);
 
   if (error) {
-    toast.error("Error loading dashboard data");
+    toast.error("Error loading dashboard", {
+      description: "Please try refreshing the page",
+    });
     console.error("Dashboard error:", error);
   }
 
   if (profileLoading || !profile) {
-    return <div>Loading...</div>;
+    return <DashboardSkeleton />;
   }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <DashboardHeader profile={profile} />
+      <ErrorBoundary>
+        <DashboardHeader profile={profile} />
+      </ErrorBoundary>
       
       <div className="grid gap-6 md:grid-cols-2">
-        <AdvancedSearch />
-        <ReportExportManager />
+        <ErrorBoundary>
+          <AdvancedSearch />
+        </ErrorBoundary>
+        <ErrorBoundary>
+          <ReportExportManager />
+        </ErrorBoundary>
       </div>
 
-      {profile?.role === 'consultant' ? (
-        <ConsultantDashboard projects={projects} isLoading={isLoading} />
-      ) : (
-        <ContractorDashboard quotes={quotes} projects={projects} isLoading={isLoading} />
-      )}
+      <ErrorBoundary>
+        {profile?.role === 'consultant' ? (
+          <ConsultantDashboard projects={projects} isLoading={isLoading} />
+        ) : (
+          <ContractorDashboard quotes={quotes} projects={projects} isLoading={isLoading} />
+        )}
+      </ErrorBoundary>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <NotificationPreferences />
-        <TwoFactorAuth />
+        <ErrorBoundary>
+          <NotificationPreferences />
+        </ErrorBoundary>
+        <ErrorBoundary>
+          <TwoFactorAuth />
+        </ErrorBoundary>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <ContractorQualityMetrics />
+        <ErrorBoundary>
+          <ContractorQualityMetrics />
+        </ErrorBoundary>
       </div>
     </div>
   );

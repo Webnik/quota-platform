@@ -34,7 +34,7 @@ export const ContractorDashboard = ({ quotes = [], projects = [], isLoading }: C
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {quotes.map((quote) => (
-        <Link key={quote.id} to={`/projects/${quote.project_id}`}>
+        <Link key={quote.id} to={`/projects/${quote.project.id}`}>
           <Card className="hover:bg-muted/50 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">

@@ -5,7 +5,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recha
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
-const CostBreakdownChart = () => {
+export const CostBreakdownChart = () => {
   const { data: costData } = useQuery({
     queryKey: ['cost-breakdown'],
     queryFn: async () => {
@@ -83,5 +83,3 @@ const CostBreakdownChart = () => {
     </Card>
   );
 };
-
-export default CostBreakdownChart;

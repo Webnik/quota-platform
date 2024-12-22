@@ -51,7 +51,7 @@ export const FilePermissions = ({ fileId, isOpen, onClose }: FilePermissionsProp
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, full_name, email")
+        .select("id, full_name, email, role")
         .ilike("full_name", `%${searchQuery}%`)
         .limit(5);
 

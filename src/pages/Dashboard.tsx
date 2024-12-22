@@ -5,6 +5,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { ConsultantDashboard } from "@/components/dashboard/ConsultantDashboard";
 import { ContractorDashboard } from "@/components/dashboard/ContractorDashboard";
+import { SuperAdminDashboard } from "@/components/dashboard/SuperAdminDashboard";
 import { ContractorQualityMetrics } from "@/components/analytics/metrics/ContractorQualityMetrics";
 import { ReportExportManager } from "@/components/reports/ReportExportManager";
 import { AdvancedSearch } from "@/components/search/AdvancedSearch";
@@ -15,7 +16,7 @@ import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { KeyboardShortcuts } from "@/components/ui/keyboard-shortcuts";
 import { EmptyState } from "@/components/ui/empty-state";
-import { FileText, Plus } from "lucide-react";
+import { FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -103,7 +104,11 @@ const Dashboard = () => {
         <DashboardHeader profile={profile} />
       </ErrorBoundary>
 
-      {showEmptyState ? (
+      {profile?.role === 'super_admin' ? (
+        <ErrorBoundary>
+          <SuperAdminDashboard />
+        </ErrorBoundary>
+      ) : showEmptyState ? (
         <EmptyState
           icon={FileText}
           title="No Projects or Quotes Yet"

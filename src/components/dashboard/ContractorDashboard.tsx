@@ -11,7 +11,7 @@ interface ContractorDashboardProps {
   isLoading: boolean;
 }
 
-const ContractorDashboard = ({ quotes = [], projects = [], isLoading }: ContractorDashboardProps) => {
+export const ContractorDashboard = ({ quotes = [], projects = [], isLoading }: ContractorDashboardProps) => {
   if (isLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -56,5 +56,3 @@ const ContractorDashboard = ({ quotes = [], projects = [], isLoading }: Contract
     </div>
   );
 };
-
-export default ContractorDashboard;

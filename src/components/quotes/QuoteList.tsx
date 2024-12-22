@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Quote } from "@/types/quote";
+import { QuoteResponse } from "@/types/quote";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
@@ -26,7 +26,7 @@ export const QuoteList = ({ projectId }: QuoteListProps) => {
         .eq('project_id', projectId);
 
       if (error) throw error;
-      return data as Quote[];
+      return data as QuoteResponse[];
     },
   });
 

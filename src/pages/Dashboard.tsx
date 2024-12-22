@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConsultantDashboard } from "@/components/dashboard/ConsultantDashboard";
@@ -34,8 +35,16 @@ const Dashboard = () => {
       setQuotesLoading(true);
       const { data: quotesData } = await supabase
         .from('quotes')
-        .select('*');
-      setQuotes(quotesData);
+        .select(`
+          *,
+          contractor:contractor_id (
+            full_name,
+            company_name
+          ),
+          project:project_id (*),
+          files (*)
+        `);
+      setQuotes(quotesData || []);
       setQuotesLoading(false);
     };
 
@@ -44,7 +53,7 @@ const Dashboard = () => {
       const { data: projectsData } = await supabase
         .from('projects')
         .select('*');
-      setProjects(projectsData);
+      setProjects(projectsData || []);
       setProjectsLoading(false);
     };
 

@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ConsultantDashboard } from "@/components/dashboard/ConsultantDashboard";
-import { ContractorDashboard } from "@/components/dashboard/ContractorDashboard";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { Profile } from "@/types/profile";
 import { QuoteResponse } from "@/types/quote";
 import { Project } from "@/types/project";
-import { toast } from "sonner";
+import { ConsultantDashboard } from "@/components/dashboard/ConsultantDashboard";
+import { ContractorDashboard } from "@/components/dashboard/ContractorDashboard";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
+import { ProfileNotFound } from "@/components/dashboard/ProfileNotFound";
 
 const Dashboard = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -97,50 +96,16 @@ const Dashboard = () => {
   }, []);
 
   if (isLoading) {
-    return (
-      <div className="container py-8 space-y-8">
-        <Skeleton className="h-8 w-[200px]" />
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Skeleton className="h-32" />
-          <Skeleton className="h-32" />
-          <Skeleton className="h-32" />
-          <Skeleton className="h-32" />
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (!profile) {
-    return (
-      <div className="container py-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600">Profile Not Found</h1>
-          <p className="mt-2 text-gray-600">Please complete your profile setup.</p>
-          <Link to="/complete-profile">
-            <Button className="mt-4">Complete Profile</Button>
-          </Link>
-        </div>
-      </div>
-    );
+    return <ProfileNotFound />;
   }
 
   return (
     <div className="container py-8 space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            Welcome back, {profile.full_name}
-          </p>
-        </div>
-        {profile.role === 'consultant' && (
-          <Link to="/projects/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> New Project
-            </Button>
-          </Link>
-        )}
-      </div>
+      <DashboardHeader profile={profile} />
 
       {profile.role === 'consultant' ? (
         <ConsultantDashboard 

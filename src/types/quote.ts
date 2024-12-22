@@ -19,3 +19,8 @@ export interface Quote {
     url: string;
   }[];
 }
+
+// Add a type for the data structure we receive from Supabase
+export type QuoteResponse = Pick<Quote, 'id' | 'amount' | 'status'> & {
+  project: Pick<Project, 'id' | 'name' | 'description' | 'status' | 'due_date'>;
+};

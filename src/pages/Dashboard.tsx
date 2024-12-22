@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Profile } from "@/types/profile";
 import { ConsultantDashboard } from "@/components/dashboard/ConsultantDashboard";
 import { ContractorDashboard } from "@/components/dashboard/ContractorDashboard";
+import { Quote, QuoteResponse } from "@/types/quote";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -102,7 +103,7 @@ const Dashboard = () => {
         .eq('contractor_id', profile.id);
 
       if (error) throw error;
-      return data;
+      return data as QuoteResponse[];
     },
     enabled: !!profile && profile.role === 'contractor'
   });
@@ -136,7 +137,7 @@ const Dashboard = () => {
         />
       ) : profile?.role === 'contractor' ? (
         <ContractorDashboard 
-          quotes={quotes} 
+          quotes={quotes as Quote[]} 
           projects={projects}
           isLoading={quotesLoading || projectsLoading} 
         />

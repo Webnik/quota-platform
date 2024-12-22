@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import ProfileForm from "./ProfileForm";
 import LoginForm from "./LoginForm";
 import LoginLoader from "./LoginLoader";
+import { MFASetup } from "./MFASetup";
 
 const LoginWrapper = ({ children }: { children: React.ReactNode }) => {
   const [showProfile, setShowProfile] = useState(false);
@@ -26,6 +27,12 @@ const LoginWrapper = ({ children }: { children: React.ReactNode }) => {
 
           if (profile && (!profile.full_name || !profile.company_name || !profile.role)) {
             setShowProfile(true);
+          }
+
+          // Check if MFA is required but not set up
+          const { data: factors } = await supabase.auth.mfa.listFactors();
+          if (factors && factors.totp.length === 0) {
+            setShowMFA(true);
           }
         }
       } catch (error) {
@@ -55,6 +62,21 @@ const LoginWrapper = ({ children }: { children: React.ReactNode }) => {
           transition={{ duration: 0.3 }}
         >
           <ProfileForm />
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
+
+  if (showMFA) {
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3 }}
+        >
+          <MFASetup />
         </motion.div>
       </AnimatePresence>
     );

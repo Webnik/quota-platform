@@ -5,28 +5,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { MFASetup } from "../auth/MFASetup";
+import { TwoFactorAuth } from "../auth/TwoFactorAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { FilePreview } from "../files/FilePreview";
+import { FilePermissions } from "../files/FilePermissions";
 
 const ProfileManagement = () => {
   const { profile } = useProfile();
   const [fullName, setFullName] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [hasMFA, setHasMFA] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<{
+    id: string;
+    name: string;
+    url: string;
+    type: string;
+  } | null>(null);
+  const [showFilePermissions, setShowFilePermissions] = useState(false);
 
   useEffect(() => {
     if (profile) {
       setFullName(profile.full_name || "");
       setCompanyName(profile.company_name || "");
     }
-
-    const checkMFA = async () => {
-      const { data } = await supabase.auth.mfa.listFactors();
-      setHasMFA(data.totp.length > 0);
-    };
-
-    checkMFA();
   }, [profile]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -85,7 +86,19 @@ const ProfileManagement = () => {
         </CardContent>
       </Card>
 
-      {!hasMFA && <MFASetup />}
+      <TwoFactorAuth />
+
+      <FilePreview
+        file={selectedFile}
+        isOpen={!!selectedFile}
+        onClose={() => setSelectedFile(null)}
+      />
+
+      <FilePermissions
+        fileId={selectedFile?.id || ""}
+        isOpen={showFilePermissions}
+        onClose={() => setShowFilePermissions(false)}
+      />
     </div>
   );
 };

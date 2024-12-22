@@ -33,7 +33,7 @@ export function TwoFactorAuth() {
       
       // Check if TOTP is verified by looking at the authentication methods
       const hasTOTP = data.currentAuthenticationMethods.some(
-        method => method.type === 'totp'
+        method => method.currentMethod === 'totp'
       );
       setIsEnabled(hasTOTP);
     } catch (error) {
@@ -59,15 +59,12 @@ export function TwoFactorAuth() {
       const totpFactor = factors.totp?.[0];
       
       if (totpFactor) {
-        // Store recovery codes if available
-        if (totpFactor.secret) {
-          // Generate some basic recovery codes as a fallback
-          // In a production environment, you should implement a more secure method
-          const codes = Array.from({ length: 10 }, () => 
-            Math.random().toString(36).substring(2, 15).toUpperCase()
-          );
-          setRecoveryCodes(codes);
-        }
+        // Generate some basic recovery codes as a fallback
+        // In a production environment, you should implement a more secure method
+        const codes = Array.from({ length: 10 }, () => 
+          Math.random().toString(36).substring(2, 15).toUpperCase()
+        );
+        setRecoveryCodes(codes);
       }
     } catch (error) {
       console.error('Error enrolling in 2FA:', error);

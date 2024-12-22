@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
 
 interface Profile {
   id: string;
-  full_name: string | null;
-  role: string | null;
-  company_name: string | null;
+  role: string;
+  full_name: string;
 }
 
 const Dashboard = () => {
@@ -19,173 +18,162 @@ const Dashboard = () => {
   useEffect(() => {
     const getProfile = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-          
-          setProfile(profile);
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          navigate("/login");
+          return;
         }
+
+        const { data: profileData, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .single();
+
+        if (error) throw error;
+        setProfile(profileData);
       } catch (error) {
-        console.error('Error fetching profile:', error);
+        console.error("Error fetching profile:", error);
+        toast.error("Error loading profile");
       } finally {
         setLoading(false);
       }
     };
 
     getProfile();
-  }, []);
+  }, [navigate]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate('/login');
+    try {
+      await supabase.auth.signOut();
+      navigate("/login");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error("Error signing out");
+    }
   };
 
-  const renderConsultantDashboard = () => (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      <Card>
-        <CardHeader>
-          <CardTitle>Total Projects</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold">0</p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Pending Quotes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold">0</p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Active Projects</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold">0</p>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const renderContractorDashboard = () => (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      <Card>
-        <CardHeader>
-          <CardTitle>Active Quotes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold">0</p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Completed Projects</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold">0</p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Pending Tasks</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold">0</p>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const renderProjectManagerDashboard = () => (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      <Card>
-        <CardHeader>
-          <CardTitle>Projects Overview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold">0</p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Active Projects</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold">0</p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Completed Projects</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold">0</p>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const renderSuperAdminDashboard = () => (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      <Card>
-        <CardHeader>
-          <CardTitle>Total Users</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold">0</p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Active Projects</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold">0</p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>System Status</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold">Active</p>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
   if (loading) {
-    return <div className="h-screen w-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
-    </div>;
+    return (
+      <div className="h-screen w-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
+      </div>
+    );
   }
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold">Welcome, {profile?.full_name || 'User'}</h1>
-            <p className="text-muted-foreground">
-              {profile?.company_name ? `${profile.company_name} - ` : ''}{profile?.role || 'User'}
-            </p>
+  const renderDashboardContent = () => {
+    switch (profile?.role) {
+      case "consultant":
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold">Consultant Dashboard</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="p-4 bg-card rounded-lg">
+                <h3 className="font-semibold">Active Projects</h3>
+                <p className="text-2xl">0</p>
+              </div>
+              <div className="p-4 bg-card rounded-lg">
+                <h3 className="font-semibold">Pending Quotes</h3>
+                <p className="text-2xl">0</p>
+              </div>
+              <div className="p-4 bg-card rounded-lg">
+                <h3 className="font-semibold">Completed Projects</h3>
+                <p className="text-2xl">0</p>
+              </div>
+              <div className="p-4 bg-card rounded-lg">
+                <h3 className="font-semibold">Total Value</h3>
+                <p className="text-2xl">$0</p>
+              </div>
+            </div>
           </div>
-          <Button variant="outline" onClick={handleSignOut}>
-            Sign Out
-          </Button>
-        </div>
+        );
+      case "contractor":
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold">Contractor Dashboard</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="p-4 bg-card rounded-lg">
+                <h3 className="font-semibold">Active Quotes</h3>
+                <p className="text-2xl">0</p>
+              </div>
+              <div className="p-4 bg-card rounded-lg">
+                <h3 className="font-semibold">Won Projects</h3>
+                <p className="text-2xl">0</p>
+              </div>
+              <div className="p-4 bg-card rounded-lg">
+                <h3 className="font-semibold">Total Revenue</h3>
+                <p className="text-2xl">$0</p>
+              </div>
+            </div>
+          </div>
+        );
+      case "project_manager":
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold">Project Manager Dashboard</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="p-4 bg-card rounded-lg">
+                <h3 className="font-semibold">Managed Projects</h3>
+                <p className="text-2xl">0</p>
+              </div>
+              <div className="p-4 bg-card rounded-lg">
+                <h3 className="font-semibold">Active Contractors</h3>
+                <p className="text-2xl">0</p>
+              </div>
+              <div className="p-4 bg-card rounded-lg">
+                <h3 className="font-semibold">Project Value</h3>
+                <p className="text-2xl">$0</p>
+              </div>
+            </div>
+          </div>
+        );
+      case "super_admin":
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold">Admin Dashboard</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="p-4 bg-card rounded-lg">
+                <h3 className="font-semibold">Total Users</h3>
+                <p className="text-2xl">0</p>
+              </div>
+              <div className="p-4 bg-card rounded-lg">
+                <h3 className="font-semibold">Active Projects</h3>
+                <p className="text-2xl">0</p>
+              </div>
+              <div className="p-4 bg-card rounded-lg">
+                <h3 className="font-semibold">Total Contractors</h3>
+                <p className="text-2xl">0</p>
+              </div>
+              <div className="p-4 bg-card rounded-lg">
+                <h3 className="font-semibold">System Health</h3>
+                <p className="text-2xl">100%</p>
+              </div>
+            </div>
+          </div>
+        );
+      default:
+        return (
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-destructive">Invalid Role</h2>
+            <p className="text-muted">Please contact an administrator.</p>
+          </div>
+        );
+    }
+  };
 
-        {profile?.role === 'consultant' && renderConsultantDashboard()}
-        {profile?.role === 'contractor' && renderContractorDashboard()}
-        {profile?.role === 'project_manager' && renderProjectManagerDashboard()}
-        {profile?.role === 'super_admin' && renderSuperAdminDashboard()}
+  return (
+    <div className="container mx-auto p-6 space-y-8">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Welcome, {profile?.full_name}</h1>
+          <p className="text-muted capitalize">{profile?.role}</p>
+        </div>
+        <Button variant="outline" onClick={handleSignOut}>
+          Sign Out
+        </Button>
       </div>
+      {renderDashboardContent()}
     </div>
   );
 };

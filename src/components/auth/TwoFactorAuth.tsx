@@ -33,7 +33,7 @@ export function TwoFactorAuth() {
       
       // Check if TOTP is verified by looking at the authentication methods
       const hasTOTP = data.currentAuthenticationMethods.some(
-        method => method.currentMethod === 'totp'
+        method => method.method === 'totp'
       );
       setIsEnabled(hasTOTP);
     } catch (error) {

@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, Eye } from "lucide-react";
+import { useState } from "react";
+import { FilePreview } from "../files/FilePreview";
 
 interface ProjectFile {
   id: string;
@@ -16,6 +18,8 @@ interface ProjectFilesProps {
 }
 
 export const ProjectFiles = ({ files, isLoading = false }: ProjectFilesProps) => {
+  const [previewFile, setPreviewFile] = useState<ProjectFile | null>(null);
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -53,14 +57,29 @@ export const ProjectFiles = ({ files, isLoading = false }: ProjectFilesProps) =>
                 {(file.size / 1024 / 1024).toFixed(2)} MB
               </p>
             </div>
-            <Button size="icon" variant="ghost" asChild>
-              <a href={file.url} download>
-                <ArrowDown className="h-4 w-4" />
-              </a>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setPreviewFile(file)}
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+              <Button size="icon" variant="ghost" asChild>
+                <a href={file.url} download>
+                  <ArrowDown className="h-4 w-4" />
+                </a>
+              </Button>
+            </div>
           </div>
         ))}
       </div>
+
+      <FilePreview
+        file={previewFile}
+        isOpen={!!previewFile}
+        onClose={() => setPreviewFile(null)}
+      />
     </div>
   );
 };

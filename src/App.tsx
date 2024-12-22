@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import CreateProject from "./pages/CreateProject";
 import ProjectDetails from "./pages/ProjectDetails";
+import QuoteSubmission from "./pages/QuoteSubmission";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +65,11 @@ const App = () => (
           <Route path="/projects/:id" element={
             <ProtectedRoute>
               <ProjectDetails />
+            </ProtectedRoute>
+          } />
+          <Route path="/projects/:projectId/quotes/:tradeId" element={
+            <ProtectedRoute>
+              <QuoteSubmission />
             </ProtectedRoute>
           } />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

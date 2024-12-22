@@ -137,7 +137,7 @@ const Dashboard = () => {
         />
       ) : profile?.role === 'contractor' ? (
         <ContractorDashboard 
-          quotes={quotes as Quote[]} 
+          quotes={quotes} 
           projects={projects}
           isLoading={quotesLoading || projectsLoading} 
         />

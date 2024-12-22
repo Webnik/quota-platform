@@ -1,9 +1,9 @@
-import { Quote } from "@/types/quote";
+import { Quote, QuoteResponse } from "@/types/quote";
 import { Project } from "@/types/project";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface ContractorDashboardProps {
-  quotes?: Quote[];
+  quotes?: QuoteResponse[];
   projects?: Project[];
   isLoading: boolean;
 }

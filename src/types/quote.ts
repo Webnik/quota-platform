@@ -1,4 +1,4 @@
-import { Profile } from "./profile";
+import { Project } from "./project";
 
 export interface Quote {
   id: string;

@@ -4,6 +4,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ContractorStats } from "./contractor/ContractorStats";
 import { QuotesList } from "./contractor/QuotesList";
 import { QuoteAnalytics } from "../analytics/QuoteAnalytics";
+import { ContractorRatings } from "./contractor/ContractorRatings";
+import { useProfile } from "@/hooks/useProfile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ContractorDashboardProps {
@@ -13,6 +15,8 @@ interface ContractorDashboardProps {
 }
 
 export const ContractorDashboard = ({ quotes = [], projects = [], isLoading }: ContractorDashboardProps) => {
+  const { profile } = useProfile();
+
   if (isLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -31,6 +35,7 @@ export const ContractorDashboard = ({ quotes = [], projects = [], isLoading }: C
         <TabsList>
           <TabsTrigger value="quotes">Quotes</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="ratings">Ratings</TabsTrigger>
         </TabsList>
 
         <TabsContent value="quotes">
@@ -39,6 +44,10 @@ export const ContractorDashboard = ({ quotes = [], projects = [], isLoading }: C
 
         <TabsContent value="analytics">
           <QuoteAnalytics quotes={quotes} />
+        </TabsContent>
+
+        <TabsContent value="ratings">
+          {profile && <ContractorRatings contractorId={profile.id} />}
         </TabsContent>
       </Tabs>
     </div>

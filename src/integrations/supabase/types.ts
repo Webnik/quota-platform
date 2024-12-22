@@ -9,6 +9,58 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      contractor_ratings: {
+        Row: {
+          contractor_id: string
+          created_at: string | null
+          created_by: string
+          feedback: string | null
+          id: string
+          project_id: string
+          rating: number
+        }
+        Insert: {
+          contractor_id: string
+          created_at?: string | null
+          created_by: string
+          feedback?: string | null
+          id?: string
+          project_id: string
+          rating: number
+        }
+        Update: {
+          contractor_id?: string
+          created_at?: string | null
+          created_by?: string
+          feedback?: string | null
+          id?: string
+          project_id?: string
+          rating?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_ratings_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_ratings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_ratings_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contractor_trades: {
         Row: {
           contractor_id: string

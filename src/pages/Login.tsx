@@ -6,27 +6,31 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in
     const checkUser = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) {
-        toast.error("Error checking authentication status");
-        console.error("Auth error:", error);
-        return;
-      }
-      if (session) {
-        navigate("/dashboard");
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          toast.error("Error checking authentication status");
+          console.error("Auth error:", error);
+          return;
+        }
+        if (session) {
+          navigate("/dashboard");
+        }
+      } finally {
+        setIsLoading(false);
       }
     };
 
     checkUser();
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
         toast.success("Successfully logged in");
@@ -37,13 +41,25 @@ const Login = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-4">
+          <Skeleton className="h-8 w-3/4 mx-auto" />
+          <Skeleton className="h-4 w-1/2 mx-auto" />
+          <Skeleton className="h-[400px] w-full" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* Left side - Login form */}
-      <div className="w-full md:w-1/2 bg-background flex flex-col justify-center items-center p-8">
+      <div className="w-full md:w-1/2 bg-background flex flex-col justify-center items-center p-4 md:p-8">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
-            <h1 className="text-4xl font-bold mb-2">Welcome to Quota</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">Welcome to Quota</h1>
             <p className="text-muted-foreground text-sm uppercase tracking-wider">BY CANOPY</p>
           </div>
 

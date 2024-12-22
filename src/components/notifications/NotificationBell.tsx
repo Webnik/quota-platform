@@ -43,11 +43,17 @@ export function NotificationBell() {
       return (data as Notification[]) || [];
     },
     retry: 1,
-    onError: (error) => {
-      console.error("Failed to fetch notifications:", error);
-      toast.error("Failed to load notifications");
+    meta: {
+      errorMessage: "Failed to load notifications"
     }
   });
+
+  // Show error toast when query fails
+  useEffect(() => {
+    if (error) {
+      toast.error("Failed to load notifications");
+    }
+  }, [error]);
 
   useEffect(() => {
     if (notifications) {

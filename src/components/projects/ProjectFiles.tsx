@@ -15,7 +15,7 @@ interface ProjectFilesProps {
   isLoading?: boolean;
 }
 
-const ProjectFiles = ({ files, isLoading = false }: ProjectFilesProps) => {
+export const ProjectFiles = ({ files, isLoading = false }: ProjectFilesProps) => {
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -64,5 +64,3 @@ const ProjectFiles = ({ files, isLoading = false }: ProjectFilesProps) => {
     </div>
   );
 };
-
-export default ProjectFiles;

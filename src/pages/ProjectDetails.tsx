@@ -40,7 +40,15 @@ const ProjectDetails = () => {
 
   return (
     <div className="container mx-auto max-w-7xl space-y-8 p-8">
-      <ProjectHeader project={project} />
+      <ProjectHeader
+        id={project.id}
+        isLoading={isLoading}
+        name={project.name}
+        status={project.status}
+        dueDate={new Date(project.due_date)}
+        totalQuotes={0}
+        totalAmount={0}
+      />
 
       <Tabs defaultValue="quotes" className="w-full">
         <TabsList>
@@ -52,7 +60,7 @@ const ProjectDetails = () => {
           <QuoteComparison projectId={id!} />
         </TabsContent>
         <TabsContent value="files" className="mt-6">
-          <ProjectFiles projectId={id!} />
+          <ProjectFiles files={[]} isLoading={false} />
         </TabsContent>
         <TabsContent value="timeline" className="mt-6">
           <ProjectTimelineView projectId={id!} />

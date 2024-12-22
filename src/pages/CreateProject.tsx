@@ -1,4 +1,4 @@
-import CreateProjectForm from "@/components/projects/CreateProjectForm";
+import { CreateProjectForm } from "@/components/projects/CreateProjectForm";
 
 const CreateProject = () => {
   return (

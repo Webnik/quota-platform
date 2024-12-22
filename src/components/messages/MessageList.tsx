@@ -24,7 +24,6 @@ export const MessageList = ({ threads, selectedThread, onSelectThread }: Message
             onClick={() => onSelectThread(thread.id)}
           >
             <Avatar>
-              <AvatarImage src={thread.participants[0]?.user?.avatar_url} />
               <AvatarFallback>
                 {thread.participants[0]?.user?.full_name?.charAt(0)}
               </AvatarFallback>

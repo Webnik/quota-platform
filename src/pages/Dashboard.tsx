@@ -9,6 +9,8 @@ import { ContractorDashboard } from "@/components/dashboard/ContractorDashboard"
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { ProfileNotFound } from "@/components/dashboard/ProfileNotFound";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -17,6 +19,7 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [quotesLoading, setQuotesLoading] = useState(true);
   const [projectsLoading, setProjectsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -24,6 +27,7 @@ const Dashboard = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           setIsLoading(false);
+          navigate('/login');
           return;
         }
 
@@ -117,14 +121,24 @@ const Dashboard = () => {
     };
 
     fetchProfile();
-  }, []);
+  }, [navigate]);
 
   if (isLoading) {
     return <DashboardSkeleton />;
   }
 
   if (!profile) {
-    return <ProfileNotFound />;
+    return (
+      <div className="container py-8 text-center">
+        <h1 className="text-2xl font-bold mb-4">Welcome to Quota</h1>
+        <p className="text-muted-foreground mb-6">
+          It looks like you're new here. Please complete your profile to get started.
+        </p>
+        <Button onClick={() => navigate('/complete-profile')}>
+          Complete Profile
+        </Button>
+      </div>
+    );
   }
 
   return (

@@ -1,124 +1,80 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import { addTimelineEvent } from "@/utils/timeline";
-import { createNotification, getProjectStakeholders } from "@/utils/notifications";
+import { Archive } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface ProjectHeaderProps {
-  id: string;
-  isLoading: boolean;
-  name: string;
+  projectId: string;
+  projectName: string;
   status: string;
-  dueDate: Date;
-  totalQuotes: number;
-  totalAmount: number;
 }
 
-export function ProjectHeader({
-  id,
-  isLoading,
-  name,
-  status,
-  dueDate,
-  totalQuotes,
-  totalAmount,
-}: ProjectHeaderProps) {
-  const handleStatusChange = async (newStatus: string) => {
+const ProjectHeader = ({ projectId, projectName, status }: ProjectHeaderProps) => {
+  const [isArchiving, setIsArchiving] = useState(false);
+  const navigate = useNavigate();
+
+  const handleArchive = async () => {
     try {
-      const oldStatus = status;
+      setIsArchiving(true);
       
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No authenticated user");
-      
-      // Update project status
-      const { error: updateError } = await supabase
-        .from("projects")
-        .update({ status: newStatus })
-        .eq("id", id);
+      const { error } = await supabase
+        .from('projects')
+        .update({ 
+          status: 'archived',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', projectId);
 
-      if (updateError) throw updateError;
+      if (error) throw error;
 
-      // Add timeline event
-      await addTimelineEvent({
-        projectId: id,
-        eventType: "status_change",
-        description: `Project status changed from ${oldStatus} to ${newStatus}`,
-        statusFrom: oldStatus,
-        statusTo: newStatus,
-        createdBy: user.id,
+      // Create a timeline event for the archive action
+      await supabase.from('project_timeline').insert({
+        project_id: projectId,
+        event_type: 'status_change',
+        description: 'Project was archived',
+        status_from: status,
+        status_to: 'archived'
       });
 
-      // Notify stakeholders
-      const stakeholders = await getProjectStakeholders(id);
+      toast.success("Project Archived", {
+        description: "The project has been successfully archived"
+      });
       
-      await Promise.all(
-        stakeholders.map(stakeholder =>
-          createNotification({
-            userId: stakeholder.id,
-            title: "Project Status Update",
-            message: `Project "${name}" status has been updated to ${newStatus}`,
-          })
-        )
-      );
-
-      toast.success("Project status updated successfully");
+      navigate("/dashboard");
     } catch (error) {
-      console.error("Error updating project status:", error);
-      toast.error("Failed to update project status");
+      console.error("Error archiving project:", error);
+      toast.error("Archive Failed", {
+        description: "There was a problem archiving the project"
+      });
+    } finally {
+      setIsArchiving(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col gap-4">
-        <Skeleton className="h-8 w-64" />
-        <div className="flex gap-4">
-          <Skeleton className="h-10 w-32" />
-          <Skeleton className="h-10 w-32" />
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-4">
-      <h1 className="text-3xl font-bold tracking-tight">{name}</h1>
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Status:</span>
-          <Select value={status} onValueChange={handleStatusChange}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="open">Open</SelectItem>
-              <SelectItem value="closed">Closed</SelectItem>
-              <SelectItem value="archived">Archived</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Due:</span>
-          <span>{new Date(dueDate).toLocaleDateString()}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Quotes:</span>
-          <span>{totalQuotes}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Total Amount:</span>
-          <span>${totalAmount.toLocaleString()}</span>
-        </div>
+    <div className="flex items-center justify-between p-6 border-b border-accent/20">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">{projectName}</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Status: <span className="capitalize">{status}</span>
+        </p>
       </div>
+      
+      {status !== 'archived' && (
+        <Button
+          variant="outline"
+          onClick={handleArchive}
+          disabled={isArchiving}
+          className="gap-2"
+        >
+          <Archive className="h-4 w-4" />
+          {isArchiving ? "Archiving..." : "Archive Project"}
+        </Button>
+      )}
     </div>
   );
-}
+};
+
+export default ProjectHeader;

@@ -2,31 +2,51 @@ import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import ProfileForm from "./ProfileForm";
 
 const LoginForm = () => {
   const [showProfile, setShowProfile] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('full_name, company_name')
-          .eq('id', user.id)
-          .single();
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name, company_name')
+            .eq('id', user.id)
+            .single();
 
-        if (profile && (!profile.full_name || !profile.company_name)) {
-          setShowProfile(true);
+          if (profile && (!profile.full_name || !profile.company_name)) {
+            setShowProfile(true);
+          }
         }
+      } catch (error) {
+        toast.error("Error checking profile", {
+          description: "Please try again later"
+        });
+      } finally {
+        setIsLoading(false);
       }
     };
 
     checkProfile();
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="w-full max-w-md space-y-8">
+        <div className="flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
 
   if (showProfile) {
     return <ProfileForm />;
@@ -71,6 +91,7 @@ const LoginForm = () => {
             label: 'text-foreground/80',
             message: 'text-muted-foreground text-sm',
             anchor: 'text-primary hover:text-primary/80',
+            divider: 'bg-accent/20',
           },
         }}
         theme="dark"

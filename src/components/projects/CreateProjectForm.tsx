@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,51 +14,24 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarIcon, Upload } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { Upload } from "lucide-react";
 import { useState } from "react";
-
-const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
-
-const formSchema = z.object({
-  name: z.string().min(1, "Project name is required"),
-  description: z.string().optional(),
-  due_date: z.date({
-    required_error: "Due date is required",
-  }),
-});
+import { ProjectDatePicker } from "./ProjectDatePicker";
+import { ProjectFileUpload } from "./ProjectFileUpload";
+import { projectFormSchema, type ProjectFormValues } from "./schemas/project-form-schema";
 
 export const CreateProjectForm = () => {
   const navigate = useNavigate();
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<ProjectFormValues>({
+    resolver: zodResolver(projectFormSchema),
     defaultValues: {
       name: "",
       description: "",
     },
   });
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error("File size must be less than 20MB");
-      return;
-    }
-
-    setSelectedFile(file);
-  };
 
   const uploadFile = async (projectId: string) => {
     if (!selectedFile) return;
@@ -89,7 +61,7 @@ export const CreateProjectForm = () => {
     });
   };
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: ProjectFormValues) => {
     try {
       setUploading(true);
       const { data: { session } } = await supabase.auth.getSession();
@@ -162,64 +134,9 @@ export const CreateProjectForm = () => {
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="due_date"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Due Date</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={(date) =>
-                        date < new Date() || date < new Date("1900-01-01")
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <ProjectDatePicker form={form} />
 
-          <div className="space-y-2">
-            <FormLabel>Project Files</FormLabel>
-            <div className="flex items-center gap-4">
-              <Input
-                type="file"
-                onChange={handleFileChange}
-                className="flex-1"
-                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
-              />
-              {selectedFile && (
-                <span className="text-sm text-muted-foreground">
-                  {selectedFile.name}
-                </span>
-              )}
-            </div>
-          </div>
+          <ProjectFileUpload onFileSelect={setSelectedFile} />
 
           <Button type="submit" className="w-full" disabled={uploading}>
             {uploading ? (

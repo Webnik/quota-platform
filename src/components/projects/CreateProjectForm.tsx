@@ -1,99 +1,116 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { ProjectFormValues, projectFormSchema } from "./schemas/project-form-schema";
-import ProjectBasicDetails from "./form/ProjectBasicDetails";
-import ProjectFiles from "./form/ProjectFiles";
+import { toast } from "sonner";
 
 const CreateProjectForm = () => {
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [dueDate, setDueDate] = useState<Date>();
+  const [dateOpen, setDateOpen] = useState(false);
 
-  const form = useForm<ProjectFormValues>({
-    resolver: zodResolver(projectFormSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      files: [],
-    },
-  });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!dueDate) {
+      toast.error("Please select a due date");
+      return;
+    }
 
-  const onSubmit = async (values: ProjectFormValues) => {
+    setLoading(true);
     try {
-      setIsSubmitting(true);
-      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No user found");
 
-      // Create project with formatted date
-      const { data: project, error: projectError } = await supabase
-        .from("projects")
+      const { error } = await supabase
+        .from('projects')
         .insert({
-          name: values.name,
-          description: values.description,
-          due_date: values.due_date.toISOString(), // Convert Date to ISO string
+          name,
+          description,
           consultant_id: user.id,
-        })
-        .select()
-        .single();
+          due_date: dueDate.toISOString(),
+          status: 'open'
+        });
 
-      if (projectError) throw projectError;
-
-      // Upload files if any
-      if (values.files && values.files.length > 0) {
-        const filesData = values.files.map(file => ({
-          name: file.name,
-          url: file.url,
-          size: file.size,
-          type: file.type,
-          project_id: project.id,
-          uploaded_by: user.id,
-        }));
-
-        const { error: filesError } = await supabase
-          .from("files")
-          .insert(filesData);
-
-        if (filesError) throw filesError;
-      }
+      if (error) throw error;
 
       toast.success("Project created successfully");
-      navigate(`/projects/${project.id}`);
+      navigate("/dashboard");
     } catch (error) {
       console.error("Error creating project:", error);
-      toast.error("Failed to create project", {
-        description: "Please try again later"
-      });
+      toast.error("Failed to create project");
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <ProjectBasicDetails form={form} />
-        <ProjectFiles form={form} />
-        
-        <div className="flex justify-end gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate("/dashboard")}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Creating..." : "Create Project"}
-          </Button>
-        </div>
-      </form>
-    </Form>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-2">
+        <Label htmlFor="name">Project Name</Label>
+        <Input
+          id="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          placeholder="Enter project name"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Enter project description"
+          rows={4}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Due Date</Label>
+        <Popover open={dateOpen} onOpenChange={setDateOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !dueDate && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {dueDate ? format(dueDate, "PPP") : "Select due date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={dueDate}
+              onSelect={(date) => {
+                setDueDate(date);
+                setDateOpen(false);
+              }}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? "Creating..." : "Create Project"}
+      </Button>
+    </form>
   );
 };
 

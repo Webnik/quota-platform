@@ -38,6 +38,7 @@ const Dashboard = () => {
         .select(`
           *,
           contractor:contractor_id (
+            id,
             full_name,
             company_name
           ),

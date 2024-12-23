@@ -9,6 +9,8 @@ import Messages from "@/pages/Messages";
 import NotFound from "@/pages/NotFound";
 import Populate from "@/pages/Populate";
 import Projects from "@/pages/Projects";
+import ActiveProjects from "@/pages/projects/ActiveProjects";
+import ArchivedProjects from "@/pages/projects/ArchivedProjects";
 import Quotes from "@/pages/Quotes";
 import Users from "@/pages/Users";
 import Settings from "@/pages/Settings";
@@ -38,6 +40,22 @@ export const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Projects />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/projects/active"
+        element={
+          <ProtectedRoute>
+            <ActiveProjects />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/projects/archived"
+        element={
+          <ProtectedRoute>
+            <ArchivedProjects />
           </ProtectedRoute>
         }
       />

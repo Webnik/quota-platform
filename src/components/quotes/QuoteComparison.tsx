@@ -59,11 +59,14 @@ export function QuoteComparison({ projectId }: QuoteComparisonProps) {
           trade:trades(name),
           files(id, name, url)
         `)
-        .eq("project_id", projectId)
-        .order("trade:trades(name)");
+        .eq("project_id", projectId);
 
       if (error) throw error;
-      return data as Quote[];
+      return (data as Quote[]).sort((a, b) => {
+        const tradeNameA = a.trade?.name || '';
+        const tradeNameB = b.trade?.name || '';
+        return tradeNameA.localeCompare(tradeNameB);
+      });
     },
   });
 

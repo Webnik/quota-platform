@@ -23,8 +23,8 @@ import { toast } from "sonner";
 const Dashboard = () => {
   const navigate = useNavigate();
   const { profile, isLoading: profileLoading } = useProfile();
-  const { data: projects = [], isLoading: projectsLoading, error: projectsError } = useProjectData();
-  const { data: quotes = [], isLoading: quotesLoading, error: quotesError } = useQuoteData();
+  const { projects = [], isLoading: projectsLoading, error: projectsError } = useProjectData();
+  const { quotes = [], isLoading: quotesLoading, error: quotesError } = useQuoteData();
 
   useEffect(() => {
     if (projectsError) {

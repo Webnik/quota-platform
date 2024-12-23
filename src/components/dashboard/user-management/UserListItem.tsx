@@ -14,6 +14,9 @@ export const UserListItem = ({ user, onEditUser, onUpdateRole }: UserListItemPro
       <div>
         <div className="font-medium">{user.full_name}</div>
         <div className="text-sm text-muted-foreground">{user.email}</div>
+        {user.company_name && (
+          <div className="text-sm text-muted-foreground">{user.company_name}</div>
+        )}
         <div className="flex items-center gap-2 mt-1">
           <Badge variant={user.role === 'super_admin' ? 'destructive' : 'secondary'}>
             {user.role}

@@ -1,30 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Profile } from "@/types/profile";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 export const useProfile = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        setIsLoading(true);
-        setError(null);
-
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
         if (sessionError) {
-          console.error("Session error:", sessionError);
-          throw new Error("Failed to get session");
+          console.error('Session error:', sessionError);
+          setError(sessionError);
+          setIsLoading(false);
+          return;
         }
 
-        if (!session?.user) {
+        if (!session) {
           setIsLoading(false);
-          navigate('/login');
           return;
         }
 
@@ -33,33 +30,44 @@ export const useProfile = () => {
           .select('*')
           .eq('id', session.user.id)
           .maybeSingle();
-        
+
         if (profileError) {
           console.error('Profile error:', profileError);
-          toast.error("Error fetching profile");
-          throw profileError;
+          setError(profileError);
+          setIsLoading(false);
+          return;
         }
 
         if (!profileData) {
-          // Handle case where profile doesn't exist
           console.log('No profile found for user:', session.user.id);
-          toast.error("Profile not found");
-          navigate('/login');
+          setError(new Error('Profile not found'));
+          setIsLoading(false);
           return;
         }
 
         setProfile(profileData);
+        setIsLoading(false);
       } catch (error) {
         console.error('Error in profile fetch:', error);
         setError(error as Error);
-        toast.error("Failed to load profile data");
-      } finally {
         setIsLoading(false);
       }
     };
 
     fetchProfile();
-  }, [navigate]);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        fetchProfile();
+      } else {
+        setProfile(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   return { profile, isLoading, error };
 };

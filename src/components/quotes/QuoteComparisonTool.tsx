@@ -21,7 +21,15 @@ export const QuoteComparisonTool = ({ quotes }: QuoteComparisonToolProps) => {
   const [selectedTrade, setSelectedTrade] = useState<string | null>(null);
 
   const tradeGroups = useMemo(() => {
-    const groups = quotes.reduce((acc, quote) => {
+    // First sort quotes by trade name
+    const sortedQuotes = [...quotes].sort((a, b) => {
+      const tradeNameA = a.trade?.name || 'Uncategorized';
+      const tradeNameB = b.trade?.name || 'Uncategorized';
+      return tradeNameA.localeCompare(tradeNameB);
+    });
+
+    // Then group by trade
+    const groups = sortedQuotes.reduce((acc, quote) => {
       const tradeName = quote.trade?.name || 'Uncategorized';
       if (!acc[tradeName]) {
         acc[tradeName] = [];

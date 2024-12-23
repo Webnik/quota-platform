@@ -32,6 +32,7 @@ export const useUserManagement = () => {
 
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
+      // First update the database
       const { error } = await supabase
         .from('profiles')
         .update({ 
@@ -42,7 +43,7 @@ export const useUserManagement = () => {
 
       if (error) throw error;
 
-      // Only update local state after successful database update
+      // If database update was successful, update local state
       const updatedUsers = users.map(user => 
         user.id === userId ? { ...user, role: newRole } : user
       );
@@ -65,6 +66,7 @@ export const useUserManagement = () => {
     if (!selectedUser) return;
 
     try {
+      // First update the database
       const { error } = await supabase
         .from('profiles')
         .update({ 
@@ -75,7 +77,7 @@ export const useUserManagement = () => {
 
       if (error) throw error;
 
-      // Only update local state after successful database update
+      // If database update was successful, update local state
       const updatedUsers = users.map(user => 
         user.id === selectedUser.id ? { ...user, ...editedUser } : user
       );

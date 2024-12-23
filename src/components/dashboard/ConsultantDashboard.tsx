@@ -7,21 +7,37 @@ import { ConsultantStats } from "./consultant/ConsultantStats";
 import { DashboardTabs } from "./consultant/DashboardTabs";
 import { useConsultantQuotes } from "@/hooks/useConsultantQuotes";
 import { useProjectSubscription } from "@/hooks/useProjectSubscription";
+import { useProjectData } from "@/hooks/useProjectData";
 
 interface ConsultantDashboardProps {
   projects?: Project[];
   isLoading: boolean;
 }
 
-export const ConsultantDashboard = ({ projects = [], isLoading }: ConsultantDashboardProps) => {
+export const ConsultantDashboard = ({ projects: initialProjects = [], isLoading }: ConsultantDashboardProps) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortField, setSortField] = useState<"name" | "due_date" | "status">("due_date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   
-  const { projects: localProjects } = useProjectSubscription(projects);
+  const { projects: localProjects } = useProjectSubscription(initialProjects);
   const { data: quotes = [] } = useConsultantQuotes(localProjects);
+  const { updateProject } = useProjectData();
+
+  const handleProjectUpdate = async (updatedProject: Project) => {
+    try {
+      await updateProject.mutateAsync({
+        id: updatedProject.id,
+        name: updatedProject.name,
+        description: updatedProject.description,
+        status: updatedProject.status,
+        due_date: updatedProject.due_date
+      });
+    } catch (error) {
+      console.error('Error updating project:', error);
+    }
+  };
 
   const filteredAndSortedProjects = useMemo(() => {
     let filtered = [...(localProjects || [])];
@@ -94,6 +110,7 @@ export const ConsultantDashboard = ({ projects = [], isLoading }: ConsultantDash
         onSortFieldChange={setSortField}
         sortDirection={sortDirection}
         onSortDirectionChange={() => setSortDirection(prev => prev === "asc" ? "desc" : "asc")}
+        onProjectUpdate={handleProjectUpdate}
       />
     </div>
   );

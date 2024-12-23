@@ -21,6 +21,7 @@ interface DashboardTabsProps {
   onSortFieldChange: (value: "name" | "due_date" | "status") => void;
   sortDirection: "asc" | "desc";
   onSortDirectionChange: () => void;
+  onProjectUpdate: (project: Project) => Promise<void>;
 }
 
 export const DashboardTabs = ({
@@ -35,6 +36,7 @@ export const DashboardTabs = ({
   onSortFieldChange,
   sortDirection,
   onSortDirectionChange,
+  onProjectUpdate,
 }: DashboardTabsProps) => {
   return (
     <Tabs defaultValue="projects" className="w-full">
@@ -57,7 +59,10 @@ export const DashboardTabs = ({
           sortDirection={sortDirection}
           onSortDirectionChange={onSortDirectionChange}
         />
-        <ProjectList projects={filteredProjects} />
+        <ProjectList 
+          projects={filteredProjects} 
+          onProjectUpdate={onProjectUpdate}
+        />
       </TabsContent>
 
       <TabsContent value="quotes">

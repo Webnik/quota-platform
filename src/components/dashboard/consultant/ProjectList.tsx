@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 
 interface ProjectListProps {
   projects: Project[];
+  onProjectUpdate?: (project: Project) => Promise<void>;
 }
 
-export const ProjectList = ({ projects }: ProjectListProps) => {
+export const ProjectList = ({ projects, onProjectUpdate }: ProjectListProps) => {
   const navigate = useNavigate();
 
   if (projects.length === 0) {
@@ -16,13 +17,20 @@ export const ProjectList = ({ projects }: ProjectListProps) => {
     );
   }
 
+  const handleProjectClick = async (project: Project) => {
+    if (onProjectUpdate) {
+      await onProjectUpdate(project);
+    }
+    navigate(`/projects/${project.id}`);
+  };
+
   return (
     <div className="space-y-4">
       {projects.map((project) => (
         <div 
           key={project.id} 
           className="p-4 bg-card rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-          onClick={() => navigate(`/projects/${project.id}`)}
+          onClick={() => handleProjectClick(project)}
         >
           <h3 className="font-semibold">{project.name}</h3>
           <p className="text-sm text-muted-foreground">{project.description}</p>

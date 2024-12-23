@@ -8,6 +8,7 @@ import { ContractorRatings } from "./contractor/ContractorRatings";
 import { useProfile } from "@/hooks/useProfile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
+import { useQuoteData } from "@/hooks/useQuoteData";
 
 interface ContractorDashboardProps {
   quotes?: QuoteResponse[];
@@ -18,13 +19,28 @@ interface ContractorDashboardProps {
 export const ContractorDashboard = ({ quotes: initialQuotes = [], projects = [], isLoading }: ContractorDashboardProps) => {
   const { profile } = useProfile();
   const [quotes, setQuotes] = useState<QuoteResponse[]>(initialQuotes);
+  const { updateQuote } = useQuoteData();
 
-  const handleQuoteUpdate = (updatedQuote: QuoteResponse) => {
-    setQuotes(prevQuotes => 
-      prevQuotes.map(quote => 
-        quote.id === updatedQuote.id ? updatedQuote : quote
-      )
-    );
+  const handleQuoteUpdate = async (updatedQuote: QuoteResponse) => {
+    try {
+      // Update the database
+      await updateQuote.mutateAsync({
+        id: updatedQuote.id,
+        status: updatedQuote.status,
+        amount: updatedQuote.amount,
+        notes: updatedQuote.notes,
+        preferred: updatedQuote.preferred
+      });
+
+      // Update local state after successful database update
+      setQuotes(prevQuotes => 
+        prevQuotes.map(quote => 
+          quote.id === updatedQuote.id ? updatedQuote : quote
+        )
+      );
+    } catch (error) {
+      console.error('Error updating quote:', error);
+    }
   };
 
   if (isLoading) {

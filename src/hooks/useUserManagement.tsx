@@ -20,7 +20,12 @@ export const useUserManagement = () => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching users:', error);
+        toast.error('Failed to load users');
+        return;
+      }
+
       setUsers(data || []);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -39,7 +44,7 @@ export const useUserManagement = () => {
           updated_at: new Date().toISOString()
         })
         .eq('id', userId)
-        .select('*')
+        .select()
         .single();
 
       if (error) {
@@ -51,7 +56,6 @@ export const useUserManagement = () => {
         throw new Error('No data returned from update');
       }
 
-      // Update local state with the returned data
       setUsers(prevUsers => 
         prevUsers.map(user => user.id === userId ? { ...user, ...data } : user)
       );
@@ -60,8 +64,7 @@ export const useUserManagement = () => {
     } catch (error) {
       console.error('Error updating user role:', error);
       toast.error('Failed to update user role');
-      // Refresh users to ensure UI shows correct state
-      fetchUsers();
+      fetchUsers(); // Refresh users to ensure UI shows correct state
     }
   };
 
@@ -80,7 +83,7 @@ export const useUserManagement = () => {
           updated_at: new Date().toISOString()
         })
         .eq('id', selectedUser.id)
-        .select('*')
+        .select()
         .single();
 
       if (error) {
@@ -92,7 +95,6 @@ export const useUserManagement = () => {
         throw new Error('No data returned from update');
       }
 
-      // Update local state with the returned data
       setUsers(prevUsers => 
         prevUsers.map(user => user.id === selectedUser.id ? { ...user, ...data } : user)
       );
@@ -103,8 +105,7 @@ export const useUserManagement = () => {
     } catch (error) {
       console.error('Error updating user info:', error);
       toast.error('Failed to update user information');
-      // Refresh users to ensure UI shows correct state
-      fetchUsers();
+      fetchUsers(); // Refresh users to ensure UI shows correct state
     }
   };
 

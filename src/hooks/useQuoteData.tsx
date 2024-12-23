@@ -1,10 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { QuoteResponse } from "@/types/quote";
 import { toast } from "sonner";
 
 export const useQuoteData = () => {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const { data: quotes, isLoading, error } = useQuery({
     queryKey: ["quotes"],
     queryFn: async () => {
       try {
@@ -50,4 +52,53 @@ export const useQuoteData = () => {
       }
     },
   });
+
+  const updateQuote = useMutation({
+    mutationFn: async (quote: Partial<QuoteResponse> & { id: string }) => {
+      const { error } = await supabase
+        .from("quotes")
+        .update(quote)
+        .eq("id", quote.id);
+
+      if (error) throw error;
+      return quote;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      toast.success("Quote updated successfully");
+    },
+    onError: (error) => {
+      console.error("Error updating quote:", error);
+      toast.error("Failed to update quote");
+    },
+  });
+
+  const createQuote = useMutation({
+    mutationFn: async (quote: Omit<QuoteResponse, "id">) => {
+      const { data, error } = await supabase
+        .from("quotes")
+        .insert(quote)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      toast.success("Quote created successfully");
+    },
+    onError: (error) => {
+      console.error("Error creating quote:", error);
+      toast.error("Failed to create quote");
+    },
+  });
+
+  return {
+    quotes,
+    isLoading,
+    error,
+    updateQuote,
+    createQuote,
+  };
 };

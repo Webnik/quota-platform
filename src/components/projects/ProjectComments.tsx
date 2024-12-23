@@ -1,29 +1,15 @@
-import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Pencil, Trash2 } from "lucide-react";
-
-interface Comment {
-  id: string;
-  content: string;
-  created_at: string;
-  user_id: string;
-  user: {
-    full_name: string;
-  };
-}
+import { CommentForm } from "./comments/CommentForm";
+import { CommentItem } from "./comments/CommentItem";
+import { Comment } from "@/types/comment";
 
 interface ProjectCommentsProps {
   projectId: string;
 }
 
 export const ProjectComments = ({ projectId }: ProjectCommentsProps) => {
-  const [newComment, setNewComment] = useState("");
-  const [editingComment, setEditingComment] = useState<string | null>(null);
-  const [editContent, setEditContent] = useState("");
   const queryClient = useQueryClient();
 
   const { data: comments = [], isLoading } = useQuery({
@@ -47,16 +33,22 @@ export const ProjectComments = ({ projectId }: ProjectCommentsProps) => {
   });
 
   const addCommentMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (content: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
       const { error } = await supabase
         .from("project_comments")
-        .insert([{ project_id: projectId, content: newComment }]);
+        .insert([{ 
+          project_id: projectId, 
+          content,
+          user_id: user.id 
+        }]);
 
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["project-comments", projectId] });
-      setNewComment("");
       toast.success("Comment added successfully");
     },
     onError: () => {
@@ -65,18 +57,16 @@ export const ProjectComments = ({ projectId }: ProjectCommentsProps) => {
   });
 
   const updateCommentMutation = useMutation({
-    mutationFn: async (commentId: string) => {
+    mutationFn: async ({ commentId, content }: { commentId: string; content: string }) => {
       const { error } = await supabase
         .from("project_comments")
-        .update({ content: editContent })
+        .update({ content })
         .eq("id", commentId);
 
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["project-comments", projectId] });
-      setEditingComment(null);
-      setEditContent("");
       toast.success("Comment updated successfully");
     },
     onError: () => {
@@ -102,102 +92,27 @@ export const ProjectComments = ({ projectId }: ProjectCommentsProps) => {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newComment.trim()) return;
-    addCommentMutation.mutate();
-  };
-
-  const handleUpdate = (commentId: string) => {
-    if (!editContent.trim()) return;
-    updateCommentMutation.mutate(commentId);
-  };
-
-  const startEditing = (comment: Comment) => {
-    setEditingComment(comment.id);
-    setEditContent(comment.content);
-  };
-
   if (isLoading) {
     return <div>Loading comments...</div>;
   }
 
   return (
     <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Textarea
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          placeholder="Add a comment..."
-          className="min-h-[100px]"
-        />
-        <Button 
-          type="submit" 
-          disabled={!newComment.trim() || addCommentMutation.isPending}
-        >
-          Add Comment
-        </Button>
-      </form>
+      <CommentForm 
+        onSubmit={(content) => addCommentMutation.mutate(content)}
+        isSubmitting={addCommentMutation.isPending}
+      />
 
       <div className="space-y-4">
         {comments.map((comment) => (
-          <div
+          <CommentItem
             key={comment.id}
-            className="bg-card p-4 rounded-lg space-y-2"
-          >
-            {editingComment === comment.id ? (
-              <div className="space-y-2">
-                <Textarea
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  className="min-h-[100px]"
-                />
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => handleUpdate(comment.id)}
-                    disabled={updateCommentMutation.isPending}
-                  >
-                    Save
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setEditingComment(null)}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-sm font-medium">{comment.user.full_name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(comment.created_at).toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => startEditing(comment)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteCommentMutation.mutate(comment.id)}
-                      disabled={deleteCommentMutation.isPending}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                <p className="text-sm">{comment.content}</p>
-              </>
-            )}
-          </div>
+            comment={comment}
+            onUpdate={(commentId, content) => 
+              updateCommentMutation.mutate({ commentId, content })}
+            onDelete={(commentId) => deleteCommentMutation.mutate(commentId)}
+            isUpdating={updateCommentMutation.isPending}
+          />
         ))}
       </div>
     </div>

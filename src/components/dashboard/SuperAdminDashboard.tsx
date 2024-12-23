@@ -1,14 +1,59 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUserManagement } from "@/hooks/useUserManagement";
-import { UserList } from "./user-management/UserList";
 import { EditUserDialog } from "./user-management/EditUserDialog";
 import { useProjectData } from "@/hooks/useProjectData";
 import { useQuoteData } from "@/hooks/useQuoteData";
 import ProjectAnalytics from "../analytics/ProjectAnalytics";
 import { QuoteAnalytics } from "../analytics/QuoteAnalytics";
-import { ContractorStats } from "./contractor/ContractorStats";
-import { QuotesList } from "./contractor/QuotesList";
+import { AdminOverviewCards } from "./admin/AdminOverviewCards";
+import { AdminUserManagement } from "./admin/AdminUserManagement";
+
+const PLACEHOLDER_PROJECTS = [
+  {
+    id: "1",
+    name: "Office Renovation",
+    description: "Complete renovation of corporate office space",
+    status: "in_progress",
+    due_date: "2024-04-01",
+    image: "https://images.unsplash.com/photo-1497366216548-37526070297c",
+  },
+  {
+    id: "2",
+    name: "Restaurant Fitout",
+    description: "New restaurant interior fitout",
+    status: "planning",
+    due_date: "2024-05-15",
+    image: "https://images.unsplash.com/photo-1466978913421-dad2ebd01d17",
+  },
+];
+
+const PLACEHOLDER_QUOTES = [
+  {
+    id: "1",
+    project_id: "1",
+    amount: 75000,
+    status: "pending",
+    contractor: {
+      id: "1",
+      full_name: "John Smith",
+      company_name: "Smith Construction",
+    },
+    created_at: "2024-02-20",
+  },
+  {
+    id: "2",
+    project_id: "1",
+    amount: 82000,
+    status: "pending",
+    contractor: {
+      id: "2",
+      full_name: "Sarah Johnson",
+      company_name: "Johnson & Co",
+    },
+    created_at: "2024-02-21",
+  },
+];
 
 export const SuperAdminDashboard = () => {
   const {
@@ -23,8 +68,8 @@ export const SuperAdminDashboard = () => {
     updateUserInfo
   } = useUserManagement();
 
-  const { projects, isLoading: projectsLoading } = useProjectData();
-  const { quotes, isLoading: quotesLoading } = useQuoteData();
+  const { projects = PLACEHOLDER_PROJECTS, isLoading: projectsLoading } = useProjectData();
+  const { quotes = PLACEHOLDER_QUOTES, isLoading: quotesLoading } = useQuoteData();
 
   if (usersLoading || projectsLoading || quotesLoading) {
     return <div>Loading data...</div>;
@@ -36,131 +81,36 @@ export const SuperAdminDashboard = () => {
 
   return (
     <div className="space-y-8">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{users.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{projects.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Quotes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{quotes.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Contractors</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{contractors.length}</div>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminOverviewCards
+        users={users}
+        projects={projects}
+        quotes={quotes}
+        contractors={contractors}
+      />
 
       <Tabs defaultValue="users" className="space-y-4">
         <TabsList>
           <TabsTrigger value="users">User Management</TabsTrigger>
           <TabsTrigger value="projects">Projects & Quotes</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="contractors">Contractors</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users">
-          <Card>
-            <CardHeader>
-              <CardTitle>User Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="all" className="space-y-4">
-                <TabsList>
-                  <TabsTrigger value="all">All Users ({users.length})</TabsTrigger>
-                  <TabsTrigger value="super-admins">
-                    Super Admins ({superAdmins.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="consultants">
-                    Consultants ({consultants.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="contractors">
-                    Contractors ({contractors.length})
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="all">
-                  <UserList
-                    users={users}
-                    onEditUser={(user) => {
-                      setSelectedUser(user);
-                      setEditedUser({
-                        full_name: user.full_name,
-                        email: user.email,
-                        company_name: user.company_name
-                      });
-                    }}
-                    onUpdateRole={updateUserRole}
-                  />
-                </TabsContent>
-
-                <TabsContent value="super-admins">
-                  <UserList
-                    users={superAdmins}
-                    onEditUser={(user) => {
-                      setSelectedUser(user);
-                      setEditedUser({
-                        full_name: user.full_name,
-                        email: user.email,
-                        company_name: user.company_name
-                      });
-                    }}
-                    onUpdateRole={updateUserRole}
-                  />
-                </TabsContent>
-
-                <TabsContent value="consultants">
-                  <UserList
-                    users={consultants}
-                    onEditUser={(user) => {
-                      setSelectedUser(user);
-                      setEditedUser({
-                        full_name: user.full_name,
-                        email: user.email,
-                        company_name: user.company_name
-                      });
-                    }}
-                    onUpdateRole={updateUserRole}
-                  />
-                </TabsContent>
-
-                <TabsContent value="contractors">
-                  <UserList
-                    users={contractors}
-                    onEditUser={(user) => {
-                      setSelectedUser(user);
-                      setEditedUser({
-                        full_name: user.full_name,
-                        email: user.email,
-                        company_name: user.company_name
-                      });
-                    }}
-                    onUpdateRole={updateUserRole}
-                  />
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+          <AdminUserManagement
+            users={users}
+            superAdmins={superAdmins}
+            consultants={consultants}
+            contractors={contractors}
+            onEditUser={(user) => {
+              setSelectedUser(user);
+              setEditedUser({
+                full_name: user.full_name,
+                email: user.email,
+                company_name: user.company_name
+              });
+            }}
+            onUpdateRole={updateUserRole}
+          />
         </TabsContent>
 
         <TabsContent value="projects">
@@ -176,18 +126,6 @@ export const SuperAdminDashboard = () => {
 
         <TabsContent value="analytics">
           <ProjectAnalytics />
-        </TabsContent>
-
-        <TabsContent value="contractors">
-          <Card>
-            <CardHeader>
-              <CardTitle>Contractor Performance</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-8">
-              <ContractorStats quotes={quotes} />
-              <QuotesList quotes={quotes} onQuoteUpdate={() => {}} />
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
 

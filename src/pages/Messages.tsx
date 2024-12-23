@@ -14,21 +14,39 @@ const Messages = () => {
   const { data: threads, isLoading } = useQuery({
     queryKey: ["message-threads"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get the thread IDs the user participates in
+      const { data: participations, error: participationsError } = await supabase
+        .from("message_thread_participants")
+        .select("thread_id")
+        .eq("user_id", profile?.id);
+
+      if (participationsError) throw participationsError;
+
+      if (!participations?.length) return [];
+
+      // Then get the threads with their participants
+      const threadIds = participations.map(p => p.thread_id);
+      const { data: threadsData, error: threadsError } = await supabase
         .from("message_threads")
         .select(`
-          *,
+          id,
+          created_at,
+          updated_at,
           participants:message_thread_participants(
             user:profiles(
-              full_name
+              id,
+              full_name,
+              avatar_url
             )
           )
         `)
+        .in("id", threadIds)
         .order("updated_at", { ascending: false });
 
-      if (error) throw error;
-      return data as MessageThreadType[];
+      if (threadsError) throw threadsError;
+      return threadsData as MessageThreadType[];
     },
+    enabled: !!profile?.id,
   });
 
   if (!profile) return null;

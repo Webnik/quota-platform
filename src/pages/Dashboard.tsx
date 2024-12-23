@@ -32,44 +32,70 @@ const Dashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No user found");
 
-      const quotesPromise = supabase
-        .from("quotes")
-        .select(`
-          *,
-          contractor:contractor_id (*),
-          project:project_id (*),
-          trade:trade_id (*)
-        `)
-        .order("created_at", { ascending: false });
-
-      const projectsPromise = supabase
+      // First fetch projects with basic consultant info
+      const { data: projectsData, error: projectsError } = await supabase
         .from("projects")
         .select(`
-          *,
-          consultant:consultant_id (*)
+          id,
+          name,
+          description,
+          consultant_id,
+          due_date,
+          status,
+          created_at,
+          updated_at,
+          consultant:profiles!projects_consultant_id_fkey (
+            id,
+            full_name,
+            company_name,
+            email
+          )
         `)
-        .order("created_at", { ascending: false });
+        .order('created_at', { ascending: false });
 
-      try {
-        const [quotesResponse, projectsResponse] = await Promise.all([
-          quotesPromise,
-          projectsPromise,
-        ]);
+      if (projectsError) throw projectsError;
 
-        if (quotesResponse.error) throw quotesResponse.error;
-        if (projectsResponse.error) throw projectsResponse.error;
+      // Then fetch quotes with basic contractor info
+      const { data: quotesData, error: quotesError } = await supabase
+        .from("quotes")
+        .select(`
+          id,
+          project_id,
+          contractor_id,
+          trade_id,
+          amount,
+          status,
+          notes,
+          created_at,
+          updated_at,
+          preferred,
+          contractor:profiles!quotes_contractor_id_fkey (
+            id,
+            full_name,
+            company_name,
+            email
+          ),
+          project:projects!quotes_project_id_fkey (
+            id,
+            name,
+            description,
+            due_date,
+            status
+          ),
+          trade:trades!quotes_trade_id_fkey (
+            id,
+            name,
+            description
+          )
+        `)
+        .order('created_at', { ascending: false });
 
-        return {
-          quotes: quotesResponse.data,
-          projects: projectsResponse.data,
-        };
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-        toast.error("Failed to load dashboard data", {
-          description: "Please try again later",
-        });
-        throw error;
-      }
+      if (quotesError) throw quotesError;
+
+      return {
+        quotes: quotesData || [],
+        projects: projectsData || [],
+      };
     },
     retry: 3,
     retryDelay: 1000,

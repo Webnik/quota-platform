@@ -2,14 +2,13 @@ import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Profile } from "@/types/profile";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 export const useProfile = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -17,7 +16,6 @@ export const useProfile = () => {
         setIsLoading(true);
         setError(null);
 
-        // First get the session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         if (sessionError) {
           console.error("Session error:", sessionError);
@@ -30,7 +28,6 @@ export const useProfile = () => {
           return;
         }
 
-        // Then fetch the profile data
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
@@ -39,40 +36,22 @@ export const useProfile = () => {
         
         if (profileError) {
           console.error('Profile error:', profileError);
-          toast({
-            title: "Error fetching profile",
-            description: "Please try refreshing the page",
-            variant: "destructive",
-          });
+          toast.error("Error fetching profile");
           throw profileError;
-        }
-
-        if (!profileData) {
-          console.warn('No profile found for user:', session.user.id);
-          toast({
-            title: "Profile not found",
-            description: "Please complete your profile setup",
-            variant: "destructive",
-          });
-          return;
         }
 
         setProfile(profileData);
       } catch (error) {
         console.error('Error in profile fetch:', error);
         setError(error as Error);
-        toast({
-          title: "Error",
-          description: "Failed to load profile data. Please try again later.",
-          variant: "destructive",
-        });
+        toast.error("Failed to load profile data");
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchProfile();
-  }, [navigate, toast]);
+  }, [navigate]);
 
   return { profile, isLoading, error };
 };

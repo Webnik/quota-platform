@@ -1,13 +1,12 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUserManagement } from "@/hooks/useUserManagement";
 import { EditUserDialog } from "./user-management/EditUserDialog";
 import { useProjectData } from "@/hooks/useProjectData";
 import { useQuoteData } from "@/hooks/useQuoteData";
-import ProjectAnalytics from "../analytics/ProjectAnalytics";
-import { QuoteAnalytics } from "../analytics/QuoteAnalytics";
 import { AdminOverviewCards } from "./admin/AdminOverviewCards";
 import { AdminUserManagement } from "./admin/AdminUserManagement";
+import { AdminProjectsOverview } from "./admin/AdminProjectsOverview";
+import { AdminAnalyticsOverview } from "./admin/AdminAnalyticsOverview";
 
 const PLACEHOLDER_PROJECTS = [
   {
@@ -148,18 +147,11 @@ export const SuperAdminDashboard = () => {
         </TabsContent>
 
         <TabsContent value="projects">
-          <Card>
-            <CardHeader>
-              <CardTitle>Projects Overview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <QuoteAnalytics quotes={quotes} />
-            </CardContent>
-          </Card>
+          <AdminProjectsOverview quotes={quotes} />
         </TabsContent>
 
         <TabsContent value="analytics">
-          <ProjectAnalytics />
+          <AdminAnalyticsOverview />
         </TabsContent>
       </Tabs>
 

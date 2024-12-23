@@ -6,10 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@/types/profile";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export const SuperAdminDashboard = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [editedUser, setEditedUser] = useState<Partial<User>>({});
 
   useEffect(() => {
     fetchUsers();
@@ -36,15 +41,51 @@ export const SuperAdminDashboard = () => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ role: newRole })
+        .update({ 
+          role: newRole,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', userId);
 
       if (error) throw error;
+      
+      // Update local state
+      setUsers(users.map(user => 
+        user.id === userId ? { ...user, role: newRole } : user
+      ));
+      
       toast.success('User role updated successfully');
-      fetchUsers();
     } catch (error) {
       console.error('Error updating user role:', error);
       toast.error('Failed to update user role');
+    }
+  };
+
+  const updateUserInfo = async () => {
+    if (!selectedUser) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          ...editedUser,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', selectedUser.id);
+
+      if (error) throw error;
+
+      // Update local state
+      setUsers(users.map(user => 
+        user.id === selectedUser.id ? { ...user, ...editedUser } : user
+      ));
+      
+      setSelectedUser(null);
+      setEditedUser({});
+      toast.success('User information updated successfully');
+    } catch (error) {
+      console.error('Error updating user info:', error);
+      toast.error('Failed to update user information');
     }
   };
 
@@ -84,7 +125,58 @@ export const SuperAdminDashboard = () => {
                     </Badge>
                   </div>
                 </div>
-                <div className="space-x-2">
+                <div className="space-x-2 flex items-center">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setEditedUser({
+                            full_name: user.full_name,
+                            email: user.email,
+                            company_name: user.company_name
+                          });
+                        }}
+                      >
+                        Edit Info
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Edit User Information</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="fullName">Full Name</Label>
+                          <Input
+                            id="fullName"
+                            value={editedUser.full_name || ''}
+                            onChange={(e) => setEditedUser({ ...editedUser, full_name: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="email">Email</Label>
+                          <Input
+                            id="email"
+                            value={editedUser.email || ''}
+                            onChange={(e) => setEditedUser({ ...editedUser, email: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="companyName">Company Name</Label>
+                          <Input
+                            id="companyName"
+                            value={editedUser.company_name || ''}
+                            onChange={(e) => setEditedUser({ ...editedUser, company_name: e.target.value })}
+                          />
+                        </div>
+                        <Button onClick={updateUserInfo} className="w-full">
+                          Save Changes
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                   <Button
                     variant="outline"
                     onClick={() => updateUserRole(user.id, 'consultant')}

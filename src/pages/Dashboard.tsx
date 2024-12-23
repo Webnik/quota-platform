@@ -32,7 +32,7 @@ const Dashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No user found");
 
-      // First fetch projects with basic consultant info
+      // First fetch projects
       const { data: projectsData, error: projectsError } = await supabase
         .from("projects")
         .select(`
@@ -43,19 +43,28 @@ const Dashboard = () => {
           due_date,
           status,
           created_at,
-          updated_at,
-          consultant:profiles!projects_consultant_id_fkey (
-            id,
-            full_name,
-            company_name,
-            email
-          )
+          updated_at
         `)
         .order('created_at', { ascending: false });
 
       if (projectsError) throw projectsError;
 
-      // Then fetch quotes with basic contractor info
+      // Then fetch consultant profiles for the projects
+      const consultantIds = [...new Set(projectsData?.map(p => p.consultant_id) || [])];
+      const { data: consultantProfiles, error: consultantError } = await supabase
+        .from("profiles")
+        .select("id, full_name, company_name, email")
+        .in("id", consultantIds);
+
+      if (consultantError) throw consultantError;
+
+      // Merge consultant data with projects
+      const projectsWithConsultants = projectsData?.map(project => ({
+        ...project,
+        consultant: consultantProfiles?.find(p => p.id === project.consultant_id)
+      }));
+
+      // Then fetch quotes with related data
       const { data: quotesData, error: quotesError } = await supabase
         .from("quotes")
         .select(`
@@ -68,33 +77,40 @@ const Dashboard = () => {
           notes,
           created_at,
           updated_at,
-          preferred,
-          contractor:profiles!quotes_contractor_id_fkey (
-            id,
-            full_name,
-            company_name,
-            email
-          ),
-          project:projects!quotes_project_id_fkey (
-            id,
-            name,
-            description,
-            due_date,
-            status
-          ),
-          trade:trades!quotes_trade_id_fkey (
-            id,
-            name,
-            description
-          )
+          preferred
         `)
         .order('created_at', { ascending: false });
 
       if (quotesError) throw quotesError;
 
+      // Fetch related profiles and trades data
+      const contractorIds = [...new Set(quotesData?.map(q => q.contractor_id) || [])];
+      const { data: contractorProfiles, error: contractorError } = await supabase
+        .from("profiles")
+        .select("id, full_name, company_name, email")
+        .in("id", contractorIds);
+
+      if (contractorError) throw contractorError;
+
+      const tradeIds = [...new Set(quotesData?.map(q => q.trade_id) || [])];
+      const { data: trades, error: tradesError } = await supabase
+        .from("trades")
+        .select("*")
+        .in("id", tradeIds);
+
+      if (tradesError) throw tradesError;
+
+      // Merge all quote related data
+      const quotesWithRelations = quotesData?.map(quote => ({
+        ...quote,
+        contractor: contractorProfiles?.find(p => p.id === quote.contractor_id),
+        project: projectsWithConsultants?.find(p => p.id === quote.project_id),
+        trade: trades?.find(t => t.id === quote.trade_id)
+      }));
+
       return {
-        quotes: quotesData || [],
-        projects: projectsData || [],
+        quotes: quotesWithRelations || [],
+        projects: projectsWithConsultants || [],
       };
     },
     retry: 3,

@@ -40,6 +40,14 @@ export const useProfile = () => {
           throw profileError;
         }
 
+        if (!profileData) {
+          // Handle case where profile doesn't exist
+          console.log('No profile found for user:', session.user.id);
+          toast.error("Profile not found");
+          navigate('/login');
+          return;
+        }
+
         setProfile(profileData);
       } catch (error) {
         console.error('Error in profile fetch:', error);

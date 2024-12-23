@@ -32,18 +32,29 @@ export const useUserManagement = () => {
 
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
-      // First update the database
-      const { error } = await supabase
+      console.log('Updating user role:', { userId, newRole });
+      
+      const { data, error } = await supabase
         .from('profiles')
         .update({ 
           role: newRole,
           updated_at: new Date().toISOString()
         })
-        .eq('id', userId);
+        .eq('id', userId)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
-      // If database update was successful, update local state
+      console.log('Database update response:', data);
+
+      if (!data || data.length === 0) {
+        throw new Error('No data returned from update');
+      }
+
+      // Update local state with the returned data
       const updatedUsers = users.map(user => 
         user.id === userId ? { ...user, role: newRole } : user
       );
@@ -66,18 +77,29 @@ export const useUserManagement = () => {
     if (!selectedUser) return;
 
     try {
-      // First update the database
-      const { error } = await supabase
+      console.log('Updating user info:', { userId: selectedUser.id, updates: editedUser });
+
+      const { data, error } = await supabase
         .from('profiles')
         .update({ 
           ...editedUser,
           updated_at: new Date().toISOString()
         })
-        .eq('id', selectedUser.id);
+        .eq('id', selectedUser.id)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
-      // If database update was successful, update local state
+      console.log('Database update response:', data);
+
+      if (!data || data.length === 0) {
+        throw new Error('No data returned from update');
+      }
+
+      // Update local state with the returned data
       const updatedUsers = users.map(user => 
         user.id === selectedUser.id ? { ...user, ...editedUser } : user
       );

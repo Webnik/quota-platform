@@ -8,6 +8,10 @@ import QuoteSubmission from "@/pages/QuoteSubmission";
 import Messages from "@/pages/Messages";
 import NotFound from "@/pages/NotFound";
 import Populate from "@/pages/Populate";
+import Projects from "@/pages/Projects";
+import Quotes from "@/pages/Quotes";
+import Users from "@/pages/Users";
+import Settings from "@/pages/Settings";
 
 export const AppRoutes = () => {
   return (
@@ -30,6 +34,14 @@ export const AppRoutes = () => {
         }
       />
       <Route
+        path="/projects"
+        element={
+          <ProtectedRoute>
+            <Projects />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/projects/new"
         element={
           <ProtectedRoute>
@@ -46,10 +58,34 @@ export const AppRoutes = () => {
         }
       />
       <Route
+        path="/quotes"
+        element={
+          <ProtectedRoute>
+            <Quotes />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/quotes/:id"
         element={
           <ProtectedRoute>
             <QuoteSubmission />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/users"
+        element={
+          <ProtectedRoute>
+            <Users />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
           </ProtectedRoute>
         }
       />

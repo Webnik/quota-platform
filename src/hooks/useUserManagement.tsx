@@ -32,8 +32,6 @@ export const useUserManagement = () => {
 
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
-      console.log('Updating user role:', { userId, newRole });
-      
       const { data, error } = await supabase
         .from('profiles')
         .update({ 
@@ -41,24 +39,22 @@ export const useUserManagement = () => {
           updated_at: new Date().toISOString()
         })
         .eq('id', userId)
-        .select();
+        .select('*')
+        .single();
 
       if (error) {
-        console.error('Supabase error:', error);
+        console.error('Error updating user role:', error);
         throw error;
       }
 
-      console.log('Database update response:', data);
-
-      if (!data || data.length === 0) {
+      if (!data) {
         throw new Error('No data returned from update');
       }
 
       // Update local state with the returned data
-      const updatedUsers = users.map(user => 
-        user.id === userId ? { ...user, role: newRole } : user
+      setUsers(prevUsers => 
+        prevUsers.map(user => user.id === userId ? { ...user, ...data } : user)
       );
-      setUsers(updatedUsers);
       
       toast.success('User role updated successfully');
     } catch (error) {
@@ -77,8 +73,6 @@ export const useUserManagement = () => {
     if (!selectedUser) return;
 
     try {
-      console.log('Updating user info:', { userId: selectedUser.id, updates: editedUser });
-
       const { data, error } = await supabase
         .from('profiles')
         .update({ 
@@ -86,24 +80,22 @@ export const useUserManagement = () => {
           updated_at: new Date().toISOString()
         })
         .eq('id', selectedUser.id)
-        .select();
+        .select('*')
+        .single();
 
       if (error) {
-        console.error('Supabase error:', error);
+        console.error('Error updating user info:', error);
         throw error;
       }
 
-      console.log('Database update response:', data);
-
-      if (!data || data.length === 0) {
+      if (!data) {
         throw new Error('No data returned from update');
       }
 
       // Update local state with the returned data
-      const updatedUsers = users.map(user => 
-        user.id === selectedUser.id ? { ...user, ...editedUser } : user
+      setUsers(prevUsers => 
+        prevUsers.map(user => user.id === selectedUser.id ? { ...user, ...data } : user)
       );
-      setUsers(updatedUsers);
       
       setSelectedUser(null);
       setEditedUser({});

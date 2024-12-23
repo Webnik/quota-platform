@@ -1,7 +1,8 @@
 import { useProjectData } from "@/hooks/useProjectData";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { ProjectList } from "@/components/dashboard/consultant/ProjectList";
+import { Project } from "@/types/project";
 
 const ActiveProjects = () => {
   const { projects, isLoading, updateProject } = useProjectData();
@@ -16,6 +17,10 @@ const ActiveProjects = () => {
 
   const activeProjects = projects?.filter(project => project.status === 'open') || [];
 
+  const handleProjectUpdate = async (project: Project) => {
+    await updateProject.mutateAsync(project);
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -29,7 +34,7 @@ const ActiveProjects = () => {
           </CardContent>
         </Card>
       ) : (
-        <ProjectList projects={activeProjects} onProjectUpdate={updateProject} />
+        <ProjectList projects={activeProjects} onProjectUpdate={handleProjectUpdate} />
       )}
     </div>
   );

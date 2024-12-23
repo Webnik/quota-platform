@@ -10,7 +10,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { FilePreview } from "../files/FilePreview";
 import { FilePermissions } from "../files/FilePermissions";
 
-const ProfileManagement = () => {
+export const ProfileManagement = () => {
   const { profile } = useProfile();
   const [fullName, setFullName] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -102,5 +102,3 @@ const ProfileManagement = () => {
     </div>
   );
 };
-
-export default ProfileManagement;

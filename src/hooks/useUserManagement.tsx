@@ -41,19 +41,19 @@ export const useUserManagement = () => {
         .eq('id', userId);
 
       if (error) throw error;
-      
-      // Update local state after successful database update
-      setUsers(users.map(user => 
+
+      // Only update local state after successful database update
+      const updatedUsers = users.map(user => 
         user.id === userId ? { ...user, role: newRole } : user
-      ));
+      );
+      setUsers(updatedUsers);
       
       toast.success('User role updated successfully');
-      
-      // Refresh users list to ensure we have the latest data
-      fetchUsers();
     } catch (error) {
       console.error('Error updating user role:', error);
       toast.error('Failed to update user role');
+      // Refresh users to ensure UI shows correct state
+      fetchUsers();
     }
   };
 
@@ -75,20 +75,20 @@ export const useUserManagement = () => {
 
       if (error) throw error;
 
-      // Update local state after successful database update
-      setUsers(users.map(user => 
+      // Only update local state after successful database update
+      const updatedUsers = users.map(user => 
         user.id === selectedUser.id ? { ...user, ...editedUser } : user
-      ));
+      );
+      setUsers(updatedUsers);
       
       setSelectedUser(null);
       setEditedUser({});
       toast.success('User information updated successfully');
-      
-      // Refresh users list to ensure we have the latest data
-      fetchUsers();
     } catch (error) {
       console.error('Error updating user info:', error);
       toast.error('Failed to update user information');
+      // Refresh users to ensure UI shows correct state
+      fetchUsers();
     }
   };
 
